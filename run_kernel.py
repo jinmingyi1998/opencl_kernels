@@ -1,9 +1,11 @@
 from collections import defaultdict
+from pprint import pp
 from time import time_ns
+
+import matplotlib.pyplot as plot
 import numpy as np
 import pyopencl as cl
 import pyopencl.cltypes as cltype
-from pprint import pp
 from tqdm import tqdm
 
 
@@ -49,33 +51,70 @@ def main():
     for i in tqdm(range(1000)):
         data_size = binary_round_up((i + 1) * 1000, 32)
         data_length = data_size
-        a_np = np.random.rand(data_length).astype(np.float32)
-        b_np = np.random.rand(data_length).astype(np.float32)
+        for t in range(10):
+            a_np = np.random.rand(data_length).astype(np.float32)
+            b_np = np.random.rand(data_length).astype(np.float32)
 
-        cpu_result = a_np + b_np
+            cpu_result = a_np + b_np
 
-        buf_a = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=a_np)
-        buf_b = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=b_np)
-        buf_c = cl.Buffer(ctx, mf.WRITE_ONLY, a_np.nbytes)
+            buf_a = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=a_np)
+            buf_b = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=b_np)
+            buf_c = cl.Buffer(ctx, mf.WRITE_ONLY, a_np.nbytes)
 
-        global_work_size = a_np.shape[0]
-        duration_log["binary_op_vec"].append(
-            run_kernel_and_time(
-                "binary_op_vec", (binary_round_up(global_work_size // 4, 32),)
+            global_work_size = a_np.shape[0]
+            duration_log["binary_op_vec"].append(
+                (
+                    run_kernel_and_time(
+                        "binary_op_vec", (binary_round_up(global_work_size // 4, 32),)
+                    ),
+                    data_length,
+                )
             )
-        )
-        duration_log["binary_op_vec_stride"].append(
-            run_kernel_and_time("binary_op_vec_stride", (int(global_work_size),))
-        )
-        duration_log["binary_op_naive"].append(
-            run_kernel_and_time("binary_op_naive", (int(global_work_size),))
-        )
-        duration_log["binary_op_stride"].append(
-            run_kernel_and_time("binary_op_stride", (int(global_work_size),))
-        )
-        del (buf_a, buf_b, buf_c, a_np, b_np)
+            duration_log["binary_op_vec_stride"].append(
+                (
+                    run_kernel_and_time(
+                        "binary_op_vec_stride", (int(global_work_size),)
+                    ),
+                    data_length,
+                )
+            )
+            duration_log["binary_op_naive"].append(
+                (
+                    run_kernel_and_time("binary_op_naive", (int(global_work_size),)),
+                    data_length,
+                )
+            )
+            duration_log["binary_op_stride"].append(
+                (
+                    run_kernel_and_time("binary_op_stride", (int(global_work_size),)),
+                    data_length,
+                )
+            )
+            del (buf_a, buf_b, buf_c, a_np, b_np)
+
+    scatter_color = {
+        "binary_op_vec": "green",
+        "binary_op_vec_stride": "lightcoral",
+        "binary_op_naive": "orange",
+        "binary_op_stride": "navy",
+    }
     for k, v in duration_log.items():
-        print(f"{k:20s} {np.asarray(v).mean():.4f}")
+        print(f"{k:20s} {np.asarray(v)[:,0].mean():.4f}")
+    for k, v in duration_log.items():
+        # print(f"{k:20s} {np.asarray(v).mean():.4f}")
+        v = np.asarray(v)
+        xdata = v[:, 1]
+        ydata = v[:, 0]
+        plot.scatter(xdata, ydata, s=4, c=scatter_color[k], label=k)
+
+        # plot.cla()
+    plot.legend(
+        scatterpoints=1,
+    )
+    plot.ylabel("time(ns)")
+    plot.xlabel("array length")
+    plot.ylim([1.4e5, 1e6])
+    plot.savefig(f"add_kernel.png")
 
 
 if __name__ == "__main__":
