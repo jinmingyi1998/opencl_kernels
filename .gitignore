@@ -5,3 +5,7 @@
 *.jpg
 *.jpeg
 *.gif
+!img/*.png
+!img/*.jpg
+!img/*.jpeg
+!img/*.git

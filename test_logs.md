@@ -10,3 +10,8 @@ binary_op_naive      229773.5660
 binary_op_stride     226078.6150
 ```
 ------------------
+commit:
+binary_op_vec        232515.0424
+binary_op_vec_stride 221565.4712
+binary_op_naive      214509.7865
+binary_op_stride     212488.2514

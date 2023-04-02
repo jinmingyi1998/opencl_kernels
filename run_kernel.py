@@ -101,20 +101,18 @@ def main():
     for k, v in duration_log.items():
         print(f"{k:20s} {np.asarray(v)[:,0].mean():.4f}")
     for k, v in duration_log.items():
-        # print(f"{k:20s} {np.asarray(v).mean():.4f}")
         v = np.asarray(v)
         xdata = v[:, 1]
         ydata = v[:, 0]
         plot.scatter(xdata, ydata, s=4, c=scatter_color[k], label=k)
 
         # plot.cla()
-    plot.legend(
-        scatterpoints=1,
-    )
+    plot.title("binary_op:add")
+    plot.legend(scatterpoints=1)
     plot.ylabel("time(ns)")
     plot.xlabel("array length")
     plot.ylim([1.4e5, 1e6])
-    plot.savefig(f"add_kernel.png")
+    plot.savefig(f"img/add_kernel.png")
 
 
 if __name__ == "__main__":
