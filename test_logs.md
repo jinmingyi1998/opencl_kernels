@@ -10,7 +10,9 @@ binary_op_naive      229773.5660
 binary_op_stride     226078.6150
 ```
 ------------------
-commit:
+commit: 2b7fb8bba802235d36a3d80b9ff70b7e16969eab
+image: img/add_kernel.png
+time:
 binary_op_vec        232515.0424
 binary_op_vec_stride 221565.4712
 binary_op_naive      214509.7865
