@@ -20,16 +20,12 @@ TEST(KERNEL, binary_op) {
         b[i] = (float)rand() / (float)RAND_MAX * 2.f - 1.f;
         c[i] = 0.0f;
     }
-    //    auto random_bin_ptr = fopen("/dev/random", "r");
-    //    fread(a, sizeof(float), length, random_bin_ptr);
-    //    fread(b, sizeof(float), length, random_bin_ptr);
-    //    fread(c, sizeof(float), length, random_bin_ptr);
 
     // calc and correct
-//    add_kernel.binary_op(a, b, c, length, BinaryOp::OPT::ADD);
-//    for (int i = 0; i < length; i++) {
-//        EXPECT_FLOAT_EQ(c[i], a[i] + b[i]);
-//    }
+    add_kernel.binary_op(a, b, c, length, BinaryOp::OPT::ADD);
+    for (int i = 0; i < length; i++) {
+        EXPECT_FLOAT_EQ(c[i], a[i] + b[i]);
+    }
 
     add_kernel.binary_op(a, b, c, length, BinaryOp::OPT::SUB);
     for (int i = 0; i < length; i++) {
