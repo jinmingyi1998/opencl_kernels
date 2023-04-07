@@ -4,8 +4,9 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <ocl_manager.h>
-
+using namespace std;
+using namespace oclk;
 TEST(API, context_test) {
-    OclManager mgr = OclManager();
+    auto mgr = OclManager::GetInstance();
     SUCCEED();
 }
