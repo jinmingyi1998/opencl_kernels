@@ -9,11 +9,30 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+namespace oclk {
 // base class for kernel wrapper
 class KernelWrapper {
 public:
-    KernelWrapper(OclManager *manager_ptr);
+    const std::string kernel_name = "noop";
+    explicit KernelWrapper(OclManager *manager_ptr);
     ~KernelWrapper();
+    std::vector<std::string> kernel_dtypes      = {"float", "half"};
+    std::vector<std::string> kernel_vcetor_size = {"4", "8", "16"};
+
+    /**
+     * Get the string representation of dtype
+     * @tparam T input value Type
+     * @param v input value
+     * @return string representation of dtype. NOTE: if not match, return float
+     */
+    template <typename T> std::string &dtype2str(T const &v) {
+        if (std::is_same<T, float>::value)
+            return kernel_dtypes[0];
+        else if (std::is_same<T, cl_half>::value)
+            return kernel_dtypes[1];
+        return kernel_dtypes[0];
+    }
 
 protected:
     cl_command_queue &GetCommandQueue();
@@ -26,7 +45,7 @@ protected:
     int LoadKernel(const std::string &program_source_file,
                    const std::string &program_compile_options,
                    const std::string &program_link_options,
-                   const std::string &kernel_name);
+                   const std::string &load_kernel_name);
 
     cl_uint CreateBuffer(const std::string &buf_name, size_t size);
     cl_mem GetBuffer(const std::string &buf_name) const;
@@ -51,4 +70,5 @@ private:
                                    const std::string &kernel_name);
     static cl_mem CreateBuffer_(const cl_context &ctx, size_t size);
 };
+} // namespace oclk
 #endif // OPENCL_DEMO_KERNEL_WRAPPER_H

@@ -3,11 +3,14 @@
 
 #include "ocl_demo.h"
 #include "ocl_manager.h"
+namespace oclk {
+std::shared_ptr<OclManager> OclManager::s_instance = {};
+std::mutex OclManager::construct_lock              = {};
 cl_platform_id OclManager::CreatePlatform_() {
     cl_platform_id platformId;
     cl_uint numPlatforms;
     cl_int err = clGetPlatformIDs(1, &platformId, &numPlatforms);
-    CHECK_CL_SUCCESS(err, "clGetPlatformIDs failed")
+    CHECK_CL_SUCCESS(err, "clGetPlatformIDs failed");
     if (numPlatforms <= 0) {
         LOG(INFO) << "No platforms found";
         return nullptr;
@@ -27,7 +30,7 @@ cl_device_id OclManager::CreateDevice_(const cl_platform_id &platform_id,
                                        cl_uint *num_device) {
     cl_int err =
         clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 0, nullptr, num_device);
-    CHECK_CL_SUCCESS(err, "Error getting device number")
+    CHECK_CL_SUCCESS(err, "Error getting device number");
     if (*num_device <= 0) {
         LOG(INFO) << "No devices found";
         return nullptr;
@@ -35,7 +38,7 @@ cl_device_id OclManager::CreateDevice_(const cl_platform_id &platform_id,
     cl_device_id deviceId;
     err = clGetDeviceIDs(
         platform_id, CL_DEVICE_TYPE_GPU, 1, &deviceId, num_device);
-    CHECK_CL_SUCCESS(err, "Error getting device")
+    CHECK_CL_SUCCESS(err, "Error getting device");
     return deviceId;
 }
 cl_uint OclManager::CreateDevice() {
@@ -53,7 +56,7 @@ cl_context OclManager::CreateContext_(const cl_device_id &deviceId) {
     cl_int err;
     cl_context ctx =
         clCreateContext(nullptr, 1, &deviceId, nullptr, nullptr, &err);
-    CHECK_CL_SUCCESS(err, "failed to create context")
+    CHECK_CL_SUCCESS(err, "failed to create context");
     return ctx;
 }
 cl_uint OclManager::CreateContext() {
@@ -69,7 +72,7 @@ cl_command_queue OclManager::CreateCommandQueue_(const cl_context &context,
     cl_int err;
     cl_command_queue commandQueue =
         clCreateCommandQueueWithProperties(context, device, nullptr, &err);
-    CHECK_CL_SUCCESS(err, "clCreateCommandQueueWithProperties failed")
+    CHECK_CL_SUCCESS(err, "clCreateCommandQueueWithProperties failed");
     if (!commandQueue) {
         LOG(INFO) << "clCreateCommandQueueWithProperties failed, queue is NULL";
         return nullptr;
@@ -93,8 +96,13 @@ void OclManager::Cleanup() {
 }
 
 OclManager::OclManager() {
-    cl_uint err;
-    err = CreatePlatform();
+    cl_uint err      = 0;
+    m_platform_id_   = nullptr;
+    m_device_id_     = nullptr;
+    m_num_devices_   = 0;
+    m_context_       = nullptr;
+    m_command_queue_ = nullptr;
+    err              = CreatePlatform();
     CHECK_RTN_PRINT_ERR_NO_RETURN(err, "failed to create platform");
     err = CreateDevice();
     CHECK_RTN_PRINT_ERR_NO_RETURN(err, "failed to create device");
@@ -111,3 +119,4 @@ OclManager::~OclManager() {
 cl_command_queue &OclManager::getCommandQueue() { return m_command_queue_; }
 const cl_device_id &OclManager::getDeviceId() const { return m_device_id_; }
 const cl_context &OclManager::getContext() const { return m_context_; }
+} // namespace oclk

@@ -26,17 +26,17 @@ FetchContent_Declare(
         GIT_REPOSITORY git@github.com:google/glog.git
         GIT_TAG v0.6.0
 )
-FetchContent_Declare(
-        yamlcpp
-        GIT_REPOSITORY git@github.com:jbeder/yaml-cpp.git
-        GIT_TAG yaml-cpp-0.7.0
-)
+#FetchContent_Declare(
+#        yaml-cpp
+#        GIT_REPOSITORY git@github.com:jbeder/yaml-cpp.git
+#        GIT_TAG yaml-cpp-0.7.0
+#)
 
 FetchContent_MakeAvailable(
         googletest
         gflags
         glog
-#        yamlcpp
+#        yaml-cpp
 )
 
 # glob source files
@@ -44,13 +44,13 @@ aux_source_directory(csrc CSRC_DIR)
 aux_source_directory(csrc/utils CSRC_UTILS_DIR)
 list(APPEND CSRC_DIR ${CSRC_UTILS_DIR})
 
-add_library(ocl_demo STATIC ${CSRC_DIR})
+add_library(ocl_demo SHARED ${CSRC_DIR})
 
 target_link_libraries(ocl_demo PUBLIC
         OpenCL
         glog::glog
         gflags::gflags
-#        yaml-cpp
+#        yaml-cpp::yaml-cpp
         )
 
 add_subdirectory(tests)

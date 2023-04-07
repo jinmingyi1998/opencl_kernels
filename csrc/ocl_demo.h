@@ -7,9 +7,10 @@
 #include <glog/logging.h>
 
 #define CHECK_CL_SUCCESS(e, msg)                                               \
-    CHECK_EQ(CL_SUCCESS, e) << "rtn code: " << e << " message:" << msg;
+    CHECK_EQ(CL_SUCCESS, e)                                                    \
+        << "rtn code: " << (signed int)e << " message:" << msg
 
 #define CHECK_RTN_PRINT_ERR_NO_RETURN(e, msg)                                  \
-    CHECK_EQ(e, 0) << "rtn code: " << e << " message:" << msg;
-
-#endif // OPENCL_DEMO_OCL_DEMO_H
+    CHECK_EQ(e, 0) << "rtn code: " << (signed int)e << " message:" << msg
+namespace oclk { } // namespace oclk
+#endif             // OPENCL_DEMO_OCL_DEMO_H

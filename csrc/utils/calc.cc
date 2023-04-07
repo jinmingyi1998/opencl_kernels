@@ -3,3 +3,4 @@
 //
 
 #include "calc.h"
+namespace oclk { } // namespace oclk
