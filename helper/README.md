@@ -1,0 +1,1 @@
+This directory is only used for testing purposes, should never be included by core codes
