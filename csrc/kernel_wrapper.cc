@@ -7,13 +7,17 @@
 #include <fstream>
 #include <iostream>
 #include <type_traits>
+
 namespace oclk {
-KernelWrapper::KernelWrapper(OclManager *manager_ptr) {
-    m_ocl_manager_ = manager_ptr;
+KernelWrapper::KernelWrapper(std::shared_ptr<OclManager> manager_ptr) {
+    INIT_LOCK
+    m_ocl_manager_  = manager_ptr;
+    has_initialized = true;
 }
 KernelWrapper::~KernelWrapper() = default;
 
 cl_command_queue &KernelWrapper::GetCommandQueue() {
+    LOG_ASSERT(has_initialized) << "kernel has not been initialized!";
     return m_ocl_manager_->getCommandQueue();
 }
 
@@ -53,16 +57,18 @@ cl_program KernelWrapper::CreateProgram_(const cl_context &ctx,
                            nullptr,
                            nullptr,
                            nullptr);
-    CHECK_CL_SUCCESS(err, "clCompileProgram failed");
-
-    static const size_t LOG_SIZE = 2048;
-    char log[LOG_SIZE];
-    log[0] = 0;
-    err    = clGetProgramBuildInfo(
-        program, device, CL_PROGRAM_BUILD_LOG, LOG_SIZE, log, nullptr);
-    if (log[0] != 0) {
-        LOG(INFO) << "Program Build Log: " << log;
+    if (err != CL_SUCCESS) {
+        LOG(ERROR) << "clCompileProgram failed";
+        static const size_t LOG_SIZE = 2048;
+        char log[LOG_SIZE];
+        log[0] = 0;
+        err    = clGetProgramBuildInfo(
+            program, device, CL_PROGRAM_BUILD_LOG, LOG_SIZE, log, nullptr);
+        if (log[0] != 0) {
+            LOG(INFO) << "Program Build Log: " << log;
+        }
     }
+
     cl_program linked_program = clLinkProgram(ctx,
                                               1,
                                               &device,
@@ -90,6 +96,7 @@ int KernelWrapper::LoadKernel(const std::string &program_source_file,
                               const std::string &program_compile_options,
                               const std::string &program_link_options,
                               std::vector<std::string> &kernel_names) {
+    LOG_ASSERT(has_initialized) << "kernel has not been initialized!";
     cl_program program =
         this->CreateProgram_(this->m_ocl_manager_->getContext(),
                              this->m_ocl_manager_->getDeviceId(),

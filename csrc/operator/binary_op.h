@@ -4,57 +4,72 @@
 
 #ifndef OPENCL_DEMO_BINARY_OP_H
 #define OPENCL_DEMO_BINARY_OP_H
-#include "kernel_wrapper.h"
-#include "ocl_demo.h"
-#include "utils/calc.h"
+#include "../kernel_wrapper.h"
+#include "../ocl_demo.h"
+#include "../utils/calc.h"
+#include <bitset>
 #include <glog/logging.h>
 #include <string>
+#include <unordered_map>
 namespace oclk {
+
 class BinaryOp : public KernelWrapper {
 public:
-    std::string source_file_name  = "../../kernel/binary_op.cl";
-    const std::string kernel_name = "binary_op";
     enum OPT {
-        NOPE = 0,
         ADD  = 1,
         SUB  = 2,
         MUL  = 3,
         DIV  = 4,
         POW  = 5,
         MIN  = 6,
-        MAX  = 7
+        MAX  = 7,
+        NOPE = 8,
     };
-    std::vector<std::string> op_suffix{
-        "ADD",
-        "SUB",
-        "MUL",
-        "DIV",
-        "POW",
-        "MIN",
-        "MAX",
+    enum METHOD {
+        NAIVE      = 1,
+        STRIDE     = 2,
+        VEC        = 3,
+        VEC_STRIDE = 4,
+        NOMETHOD   = 5,
     };
+    BinaryOp() { }
+    BinaryOp(std::shared_ptr<OclManager> managerPtr);
 
-    explicit BinaryOp(OclManager *managerPtr);
     template <typename T>
     void binary_op(const std::vector<T> &a,
                    const std::vector<T> &b,
                    std::vector<T> &result,
-                   size_t length,
                    OPT opt,
-                   const std::string &kernel_method,
+                   METHOD kernel_method,
                    size_t local_work_size) {
         if (local_work_size <= 0) local_work_size = 4;
-        CHECK_EQ(a.size(), result.size()) << "vector size should be same";
+        LOG_ASSERT(a.size() == result.size()) << "vector size should be same";
+        std::bitset<32> local_work_size_bitset((unsigned long)local_work_size);
+        LOG_ASSERT(local_work_size_bitset.count() == 1)
+            << "local work size must be multiple of 2";
 
         std::string kernel_name_suf = opt2string(opt);
-        std::string run_kernel_name =
-            kernel_name + "_" + kernel_method + "_" + kernel_name_suf;
+        std::string run_kernel_name = kernel_name + "_" +
+                                      method2string(kernel_method) + "_" +
+                                      kernel_name_suf;
         std::string dtype_str = dtype2str(a[0]);
         run_kernel_name.append("/").append(dtype_str);
         cl_kernel &kernel = GetKernelByName(run_kernel_name);
-        LOG(INFO) << "running kernel name: " << run_kernel_name;
+
+        // round up align
+        size_t length                = a.size();
         uint real_bytesize_length    = length * sizeof(T);
-        uint rounded_bytesize_length = binary_round_up(length, 32) * sizeof(T);
+        size_t rounded_length        = binary_round_up(length, 16);
+        uint rounded_bytesize_length = rounded_length * sizeof(T);
+        size_t global_work_size      = length;
+        if (kernel_method == METHOD::VEC || kernel_method == METHOD::STRIDE) {
+            global_work_size = binary_round_up(int(global_work_size / 4), 4);
+        }
+        else if (kernel_method == METHOD::VEC_STRIDE) {
+            global_work_size = binary_round_up((int)global_work_size / 16, 16);
+        }
+        global_work_size = global_work_size < 1 ? 1 : global_work_size;
+        global_work_size = binary_round_up(global_work_size, local_work_size);
 
         // create array buffers
         cl_uint err;
@@ -68,7 +83,7 @@ public:
                                    GetBuffer("a"),
                                    CL_TRUE,
                                    0,
-                                   rounded_bytesize_length,
+                                   real_bytesize_length,
                                    a.data(),
                                    0,
                                    nullptr,
@@ -78,7 +93,7 @@ public:
                                    GetBuffer("b"),
                                    CL_TRUE,
                                    0,
-                                   rounded_bytesize_length,
+                                   real_bytesize_length,
                                    b.data(),
                                    0,
                                    nullptr,
@@ -93,15 +108,14 @@ public:
         CHECK_RTN_PRINT_ERR_NO_RETURN(err, "set kernel arg b failed");
         err = clSetKernelArg(kernel, 2, sizeof(cl_mem), &buf_c);
         CHECK_RTN_PRINT_ERR_NO_RETURN(err, "set kernel arg c failed");
-        size_t rounded_length = binary_round_up(length, 8);
-        err = clSetKernelArg(kernel, 3, sizeof(int), &rounded_length);
+        err = clSetKernelArg(kernel, 3, sizeof(int), &length);
         CHECK_RTN_PRINT_ERR_NO_RETURN(err, "set kernel arg length failed");
 
         err = clEnqueueNDRangeKernel(GetCommandQueue(),
                                      kernel,
                                      1,
                                      NULL,
-                                     &rounded_length,
+                                     &global_work_size,
                                      &local_work_size,
                                      0,
                                      nullptr,
@@ -166,6 +180,20 @@ public:
         }
         else {
             return NOPE;
+        }
+    }
+    static std::string method2string(METHOD method) {
+        switch (method) {
+            case NAIVE:
+                return "naive";
+            case STRIDE:
+                return "stride";
+            case VEC:
+                return "vec";
+            case VEC_STRIDE:
+                return "vec_stride";
+            default:
+                return "unknown";
         }
     }
 };

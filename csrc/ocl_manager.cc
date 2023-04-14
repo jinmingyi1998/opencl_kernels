@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <glog/logging.h>
 #include <iostream>
 
 #include "ocl_demo.h"
@@ -114,7 +115,7 @@ OclManager::OclManager() {
 }
 OclManager::~OclManager() {
     Cleanup();
-    LOG(INFO) << "CL context destroyed";
+    LOG(WARNING) << "CL context destroyed";
 }
 cl_command_queue &OclManager::getCommandQueue() { return m_command_queue_; }
 const cl_device_id &OclManager::getDeviceId() const { return m_device_id_; }

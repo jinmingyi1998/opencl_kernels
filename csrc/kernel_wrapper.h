@@ -6,16 +6,26 @@
 #define OPENCL_DEMO_KERNEL_WRAPPER_H
 
 #include "ocl_manager.h"
+#include <glog/logging.h>
 #include <memory>
 #include <string>
 #include <vector>
+#define INIT_LOCK                                                              \
+    static std::mutex init_lock;                                               \
+    const std::lock_guard<std::mutex> lock(init_lock);
 
 namespace oclk {
 // base class for kernel wrapper
 class KernelWrapper {
 public:
-    const std::string kernel_name = "noop";
-    explicit KernelWrapper(OclManager *manager_ptr);
+    std::string kernel_name      = "noop";
+    std::string source_file_name = "";
+    bool has_initialized         = false;
+    KernelWrapper() {
+        LOG(WARNING) << "kernel: " << kernel_name
+                     << " has not been initialized yet!";
+    }
+    explicit KernelWrapper(std::shared_ptr<OclManager> manager_ptr);
     ~KernelWrapper();
     std::vector<std::string> kernel_dtypes      = {"float", "half"};
     std::vector<std::string> kernel_vcetor_size = {"4", "8", "16"};
@@ -52,7 +62,7 @@ protected:
     void ReleaseBuffer(const std::string &buf_name);
 
 private:
-    OclManager *m_ocl_manager_;
+    std::shared_ptr<OclManager> m_ocl_manager_;
 
     std::unordered_map<std::string, cl_program> programs; // {filename: program}
 

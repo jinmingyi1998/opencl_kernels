@@ -6,6 +6,9 @@
 #define OPENCL_DEMO_OCL_DEMO_H
 #include <glog/logging.h>
 
+#define STRING_CAT2(S1, S2) S1##_##S2
+#define STRING_CAT3(S1, S2, S3) S1##_##S2##_##S3
+
 #define CHECK_CL_SUCCESS(e, msg)                                               \
     CHECK_EQ(CL_SUCCESS, e)                                                    \
         << "rtn code: " << (signed int)e << " message:" << msg
