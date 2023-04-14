@@ -60,49 +60,62 @@ GEN_OPERATOR_V4(POW, pow(a, b))
 GEN_OPERATOR_V4(MIN, min(a, b))
 GEN_OPERATOR_V4(MAX, max(a, b))
 
-kernel void FUNCNAME_SUFFIX(binary_op_naive, BINARY_OP_OPT)(
-    global const CL_DTYPE *a, global const CL_DTYPE *b, global CL_DTYPE *c, int length) {
+kernel void FUNCNAME_SUFFIX(binary_op_naive,
+                            BINARY_OP_OPT)(global const CL_DTYPE *a,
+                                           global const CL_DTYPE *b,
+                                           global CL_DTYPE *c,
+                                           int length) {
     int idx = get_global_id(0);
     if (idx >= length) return;
     // c[idx] = process_operator(a[idx], b[idx]);
     c[idx] = CALL_GEN_OPERATOR(BINARY_OP_OPT, a[idx], b[idx]);
 }
 
-kernel void FUNCNAME_SUFFIX(binary_op_stride, BINARY_OP_OPT)(
-    global const CL_DTYPE *a, global const CL_DTYPE *b, global CL_DTYPE *c, int length) {
+kernel void FUNCNAME_SUFFIX(binary_op_stride,
+                            BINARY_OP_OPT)(global const CL_DTYPE *a,
+                                           global const CL_DTYPE *b,
+                                           global CL_DTYPE *c,
+                                           int length) {
     int idx       = get_global_id(0);
     int start_idx = idx * BINARY_OP_STRIDE;
     CL_DTYPE res[BINARY_OP_STRIDE];
     if (start_idx >= length) return;
-    for (int i = 0; i < BINARY_OP_STRIDE; i++) {
-        // res[i] = process_operator(a[start_idx + i], b[start_idx + i]);
+    for (int i = 0; i < BINARY_OP_STRIDE && start_idx + i < length; i++) {
         res[i] = CALL_GEN_OPERATOR(
             BINARY_OP_OPT, a[start_idx + i], b[start_idx + i]);
     }
-    for (int i = 0; i < BINARY_OP_STRIDE; i++) {
+    for (int i = 0; i < BINARY_OP_STRIDE && start_idx + i < length; i++) {
         c[i + start_idx] = res[i];
     }
 }
-kernel void FUNCNAME_SUFFIX(binary_op_vec_stride, BINARY_OP_OPT)(
-    global const CL_DTYPE *a, global const CL_DTYPE *b, global CL_DTYPE *c, int length) {
+kernel void FUNCNAME_SUFFIX(binary_op_vec_stride,
+                            BINARY_OP_OPT)(global const CL_DTYPE *a,
+                                           global const CL_DTYPE *b,
+                                           global CL_DTYPE *c,
+                                           int length) {
     // process 4[stride] * 4[float4] = 16 elements
     int idx       = get_global_id(0);
     int start_idx = idx * BINARY_OP_STRIDE * VECTOR_LENGTH;
     if (start_idx >= length) return;
     CL_DTYPE4 res[BINARY_OP_STRIDE];
-    for (int i = 0; i < BINARY_OP_STRIDE; i++) {
+    for (int i = 0;
+         i < BINARY_OP_STRIDE && start_idx + i * VECTOR_LENGTH < length;
+         i++) {
         CL_DTYPE4 va = VLOAD_LENGTH(VECTOR_LENGTH)(i, a + start_idx);
         CL_DTYPE4 vb = VLOAD_LENGTH(VECTOR_LENGTH)(i, b + start_idx);
         res[i]       = CALL_GEN_OPERATOR_V4(BINARY_OP_OPT, va, vb);
     }
-    for (int i = 0; i < BINARY_OP_STRIDE; i++) {
+    for (int i = 0;
+         i < BINARY_OP_STRIDE && start_idx + i * VECTOR_LENGTH < length;
+         i++) {
         VSTORE_LENGTH(VECTOR_LENGTH)(res[i], i, c + start_idx);
     }
 }
-kernel void FUNCNAME_SUFFIX(binary_op_vec, BINARY_OP_OPT)(global const CL_DTYPE *a,
-                                                          global const CL_DTYPE *b,
-                                                          global CL_DTYPE *c,
-                                                          int length) {
+kernel void FUNCNAME_SUFFIX(binary_op_vec,
+                            BINARY_OP_OPT)(global const CL_DTYPE *a,
+                                           global const CL_DTYPE *b,
+                                           global CL_DTYPE *c,
+                                           int length) {
     int idx       = get_global_id(0);
     int start_idx = idx * VECTOR_LENGTH;
     if (start_idx >= length) return;
