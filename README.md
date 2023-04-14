@@ -23,3 +23,8 @@ TODO: implement test framework
   - min
   - max
   - pow
+
+## Issues:
+### gflags glogs gtests share library not found
+it may occur when using system installed libraries but not default library location.
+set LD_LIBRARY_PATH to library location.
