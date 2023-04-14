@@ -6,7 +6,7 @@
 #include <ocl_manager.h>
 using namespace std;
 using namespace oclk;
-TEST(API, context_test) {
+TEST(TEST_OCLK_API, context_test) {
     auto mgr = OclManager::GetInstance();
     SUCCEED();
 }
