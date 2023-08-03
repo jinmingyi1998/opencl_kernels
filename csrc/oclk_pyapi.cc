@@ -10,6 +10,14 @@
 #include "runner.h"
 namespace py = pybind11;
 
+#ifndef OCLK_VERSION_INFO
+#define OCLK_VERSION_INFO 0.0.0
+#endif // OCLK_VERSION_INFO
+#define STRINGIFY(x) #x
+#define MACRO_STRINGIFY(x) STRINGIFY(x)
+
+const std::string module_version = MACRO_STRINGIFY(OCLK_VERSION_INFO) ;
+
 std::shared_ptr<oclk::CLRunner> runner;
 unsigned long Init() {
     oclk::ocl_instance.init();
@@ -175,4 +183,5 @@ PYBIND11_MODULE(oclk_C, m) {
     m.def("init", &Init, "");
     m.def("load_kernel", &LoadKernel, "");
     m.def("run", &run_impl, "run_impl_float");
+    m.attr("__version__") = module_version;
 }

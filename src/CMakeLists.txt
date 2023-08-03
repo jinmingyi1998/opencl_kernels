@@ -3,7 +3,7 @@ project(oclk)
 
 set(CMAKE_CXX_STANDARD 14)
 
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os")
 find_library(OpenCL name OpenCL PATHS "/usr/lib/x86_64-linux-gnu")
 message(STATUS "${OpenCL}")
 
