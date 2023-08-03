@@ -1,5 +1,26 @@
 # OpenCL Kernel Python Wrapper
 
+## Install
+### Clone this repo
+clone by http
+```shell
+git clone https://github.com/jinmingyi1998/opencl_kernels.git
+```
+with ssh
+```shell
+git clone git@github.com:jinmingyi1998/opencl_kernels.git
+```
+### Install
+```shell
+python setup.py install
+```
+
+### Requirements
+
+* OpenCL GPU hardware
+* numpy
+* cmake > 3.16
+
 ## Usage
 
 ### Kernel File:
