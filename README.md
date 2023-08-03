@@ -4,11 +4,11 @@
 ### Clone this repo
 clone by http
 ```shell
-git clone https://github.com/jinmingyi1998/opencl_kernels.git
+git clone --recursive https://github.com/jinmingyi1998/opencl_kernels.git
 ```
 with ssh
 ```shell
-git clone git@github.com:jinmingyi1998/opencl_kernels.git
+git clone --recursive git@github.com:jinmingyi1998/opencl_kernels.git
 ```
 ### Install
 ```shell
