@@ -1,1 +1,2 @@
 include oclk/oclk_C.pyi
+include oclk/third_party/OpenCL/lib/x86_64/*
