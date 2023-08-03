@@ -1,0 +1,70 @@
+#基础样式
+BasedOnStyle: LLVM
+AccessModifierOffset: -4
+#指针的*的挨着哪边
+PointerAlignment: Right
+# 缩进宽度
+IndentWidth: 4
+# 连续的空行保留几行
+MaxEmptyLinesToKeep: 1
+# 圆括号的换行方式
+BreakBeforeBraces: Attach
+# 是否允许短方法单行
+AllowShortFunctionsOnASingleLine: true
+# 支持一行的if
+AllowShortIfStatementsOnASingleLine: true
+# 在未封闭(括号的开始和结束不在同一行)的括号中的代码是否对齐
+AlignAfterOpenBracket: true
+# switch的case缩进
+IndentCaseLabels: true
+# 针对OC的block的缩进宽度
+ObjCBlockIndentWidth: 4
+# 针对OC，属性名后加空格
+ObjCSpaceAfterProperty: true
+# 注释对齐
+AlignTrailingComments: true
+# 括号后加空格
+SpaceAfterCStyleCast: false
+# 换行的时候对齐操作符
+AlignOperands: true
+# 中括号两边空格 []
+SpacesInSquareBrackets: false
+# 多行声明语句按照=对齐
+AlignConsecutiveDeclarations: false
+# 容器类的空格 例如 OC的字典
+SpacesInContainerLiterals: false
+# 在构造函数初始化时按逗号断行，并以冒号对齐
+BreakConstructorInitializersBeforeComma: true
+# 函数参数换行
+AllowAllParametersOfDeclarationOnNextLine: true
+# 每行字符的长度
+ColumnLimit: 80
+#在续行(\
+#     下一行)时的缩进长度
+ContinuationIndentWidth: 4
+# tab键盘的宽度
+TabWidth: 4
+# 赋值运算符前加空格
+SpaceBeforeAssignmentOperators: true
+# 行尾的注释前加1个空格
+SpacesBeforeTrailingComments: 1
+
+AlignConsecutiveAssignments: true
+
+AlwaysBreakTemplateDeclarations: MultiLine
+
+IndentWrappedFunctionNames: false
+
+SpaceInEmptyBlock: true
+
+EmptyLineBeforeAccessModifier: Always
+
+BinPackArguments: false
+
+BinPackParameters: false
+
+# if else
+BraceWrapping:
+  AfterControlStatement: false
+  BeforeCatch: true
+  BeforeElse: true
