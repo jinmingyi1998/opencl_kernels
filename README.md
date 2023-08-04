@@ -3,13 +3,9 @@
 ## Install
 ### Install from wheel
 
-_prebuild wheel has no glog, output might be ugly_
-
 download wheel from [release](https://github.com/jinmingyi1998/opencl_kernels/releases) and install
 
 ### Compile from source
-
-If you have glog installed, it is recommended to compile this package from source
 
 **Clone this repo**
 
@@ -165,6 +161,4 @@ run(kernel_name='add',
 
 ## Known Issues
 
-This package need to build multiple libs so far. Then this package cannot be installed by wheel or something else (Because
-pip will build in a tmp env and move libs to site-packages, which will cause share libs link to removed temp share libs
-and then link file not found). So clone to a directory and install this package with `python setup.py install` and don't move this directory.
+* TODO: GPU Buffer never deleted, which cased memory leak. There will be a memory pool
