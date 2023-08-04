@@ -16,7 +16,7 @@ namespace py = pybind11;
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
-const std::string module_version = MACRO_STRINGIFY(OCLK_VERSION_INFO) ;
+const std::string module_version = MACRO_STRINGIFY(OCLK_VERSION_INFO);
 
 std::shared_ptr<oclk::CLRunner> runner;
 unsigned long Init() {
@@ -40,7 +40,7 @@ unsigned long LoadKernel(std::string &kernel_filename,
     return 0;
 }
 
-inline void add_array_arg(std::string arg_name,
+inline void add_array_arg(std::string &arg_name,
                           py::array &arr,
                           std::vector<oclk::ArgWrapper> &constants) {
     oclk::OCLENV *env = &oclk::ocl_instance;
@@ -52,42 +52,41 @@ inline void add_array_arg(std::string arg_name,
 }
 /**
  * parse arg from kwargs dict, meanwhile modify args vector
- * @param arg_dict
+ * @param arg_dict list of dict
  * @param args
  * @return py::list of all pyobject, order same as args
  */
-py::list parse_args(py::dict arg_dict, std::vector<oclk::ArgWrapper> &args) {
-    auto iter     = arg_dict.begin();
-    auto end_iter = arg_dict.end();
-    py::list arg_list;
-    while (iter != end_iter) {
-        arg_list.append(iter->second);
-        LOG(INFO) << "Parse arg: " << iter->first
-                  << " type:" << iter->second.get_type();
-        if (py::isinstance<py::array>(iter->second)) {
-            py::array arr = iter->second.cast<py::array>();
+py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
+    for (int i = 0; i < arg_dicts.size(); i++) {
+        auto arg_dict    = arg_dicts[i].cast<py::dict>();
+        std::string name = arg_dict["name"].cast<std::string>();
+        auto v           = arg_dict["value"];
+        LOG(INFO) << "Parse arg: " << name << " type:" << v.get_type();
+        if (py::isinstance<py::array>(v)) {
+            py::array arr = v.cast<py::array>();
             LOG(INFO) << "    array dtype: " << arr.dtype()
                       << " size: " << arr.size()
                       << " data size: " << arr.nbytes() << " Bytes";
-            add_array_arg((iter->first).cast<std::string>(), arr, args);
-        } else if (py::isinstance<py::int_>(iter->second) ||
-                   py::isinstance<py::float_>(iter->second)) {
-            if (py::isinstance<py::int_>(iter->second)) {
-                long v = iter->second.cast<long>();
-                args.emplace_back((iter->first).cast<std::string>(), v);
+            add_array_arg(name, arr, args);
+        } else if (py::isinstance<py::int_>(v) ||
+                   py::isinstance<py::float_>(v)) {
+            if (py::isinstance<py::int_>(v)) {
+                long v_int = v.cast<long>();
+                args.emplace_back(name, v_int);
             } else {
-                float v = iter->second.cast<float>();
-                args.emplace_back(iter->first.cast<std::string>(), v);
+                float v_float = v.cast<float>();
+                args.emplace_back(name, v_float);
             }
         } else {
             std::stringstream err_msg("error: unknown type, only support int, "
                                       "float, np.array, but got");
-            err_msg << iter->first << " type: " << iter->second.get_type();
+            err_msg << name << " type: " << v.get_type();
             LOG(ERROR) << err_msg.str();
-            return arg_list;
+            return arg_dicts;
         }
-        iter++;
     }
+    LOG(INFO) << "parse args done";
+    return arg_dicts;
 }
 /**
  * @param kwargs example input:
@@ -95,12 +94,12 @@ py::list parse_args(py::dict arg_dict, std::vector<oclk::ArgWrapper> &args) {
  *         "kernel_name" str : "YOUR_KERNEL_NAME"
  *         "global_worksize" List[int]: [1123,132],
  *         "local_worksize" List[int]: [1,1],
- *         "input" Dict[str,Union[int,float,np.array]] : {
- *             "name1" : value1 ,
- *             "name2" : value1 ,
- *             "name3" : value1 ,
- *             "name4" : value2
- *         },
+ *         "input" List[Dict[str,Union[int,float,np.array]]] : [
+ *             {'name':'name1', 'value' : value1} ,
+ *             {'name':'name2', 'value' : value1} ,
+ *             {'name':'name3', 'value' : value1} ,
+ *             {'name':'name4', 'value' : value2}
+ *         ],
  *         "output" List[str]: ["name3","name4"]
  *         "wait" bool : false (by default)
  *         "timer" :{
@@ -115,8 +114,15 @@ py::list parse_args(py::dict arg_dict, std::vector<oclk::ArgWrapper> &args) {
 py::list run_impl(py::kwargs &kwargs) {
     oclk::OCLENV *env = &oclk::ocl_instance;
     std::vector<oclk::ArgWrapper> kernel_args;
-    auto in_arg_list =
-        parse_args(kwargs[py::str("input")].cast<py::dict>(), kernel_args);
+    parse_args(kwargs["input"].cast<py::list>(), kernel_args);
+    /** arg_list is list of dict:
+     * [
+     *      {"name":"something0", "value":12312},
+     *      {"name":"something1", "value":45.45},
+     *      {"name":"something2", "value":np.array([1,2,3],dtype=np.float32)}
+     * ]
+     * TODO: add "type"
+     */
     auto global_work_size_pylist =
         kwargs[py::str("global_work_size")].cast<py::list>();
     auto local_work_size_pylist =
@@ -159,15 +165,18 @@ py::list run_impl(py::kwargs &kwargs) {
                       timer_args);
 
     auto out_arg_list = kwargs[py::str("output")].cast<py::list>();
+    auto in_arg_list  = kwargs["input"].cast<py::list>();
 
     for (auto &s : out_arg_list) {
         auto arg_name = s.cast<std::string>();
+        LOG(INFO) << "read arg " << arg_name;
         for (int i = 0; i < kernel_args.size(); i++) {
             auto &c = kernel_args[i];
             if (c.name == arg_name) {
                 cl_mem mem;
                 memcpy(&mem, c.bytes.data(), c.bytes.size());
-                py::array arr = in_arg_list[i];
+                py::array arr = (in_arg_list[i].cast<py::dict>())["value"]
+                                    .cast<py::array>();
                 oclk::read_data_from_buffer(
                     env->command_queue, mem, arr.mutable_data(), arr.nbytes());
                 break;

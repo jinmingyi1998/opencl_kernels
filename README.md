@@ -1,20 +1,28 @@
 # OpenCL Kernel Python Wrapper
 
 ## Install
+
 ### Clone this repo
+
 clone by http
+
 ```shell
 git clone --recursive https://github.com/jinmingyi1998/opencl_kernels.git
 ```
+
 with ssh
+
 ```shell
 git clone --recursive git@github.com:jinmingyi1998/opencl_kernels.git
 ```
+
 ### Install
+
 ```shell
+cd opencl_kernels
 python setup.py install
 ```
-
+***DO NOT move this directory after install***
 ### Requirements
 
 * OpenCL GPU hardware
@@ -145,3 +153,9 @@ run(kernel_name='add',
     timer=timer
     )
 ```
+
+## Known Issues
+
+This package need to build multiple libs so far. Then this package cannot be installed by wheel or something else (Because
+pip will build in a tmp env and move libs to site-packages, which will cause share libs link to removed temp share libs
+and then link file not found). So clone to a directory and install this package with `python setup.py install` and don't move this directory.

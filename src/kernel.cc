@@ -3,11 +3,15 @@
 //
 
 #include "kernel.h"
+
 #include <fstream>
 std::string readFile(const std::string &filename) {
     std::ifstream file_stream(filename);
-    LOG_ASSERT(file_stream.is_open())
-        << " Error: Failed to open program file! " << filename;
+    if (!file_stream.is_open()) {
+        LOG(ERROR) << " Error: Failed to open program file! " << filename;
+        return "";
+    }
+
     std::stringstream buffer;
     buffer << file_stream.rdbuf();
     return buffer.str();
@@ -17,17 +21,23 @@ cl_program oclk::CreateProgram_(const cl_context &ctx,
                                 const std::string &filename,
                                 const std::string &compile_options,
                                 const std::string &link_options) {
-    VLOG(3) << "filename: " << filename
+    VLOG(2) << "filename: " << filename
             << "\tcompile_options: " << compile_options
             << "\tlink_options: " << link_options;
     auto program_str           = readFile(filename);
     const char *program_source = program_str.c_str();
-    CHECK_NE(program_source, nullptr) << "failed to read file " << filename;
+    if (program_source == nullptr) {
+        LOG(ERROR) << "failed to read file " << filename;
+        ASSERT_PRINT(program_source != nullptr, "Failed to read file");
+    }
     cl_int err;
     cl_program program = clCreateProgramWithSource(
         ctx, 1, (const char **)&program_source, nullptr, &err);
-    CHECK_CL_SUCCESS(err, "clCreateProgram failed");
-    CHECK_NE(program, nullptr) << "clCreateProgram failed, program is NULL";
+
+    CHECK_RTN(err, "clCreateProgram failed");
+    if (program == nullptr) {
+        LOG(ERROR) << "clCreateProgram failed, program is NULL";
+    }
     err = clCompileProgram(program,
                            1,
                            &device,
@@ -45,9 +55,9 @@ cl_program oclk::CreateProgram_(const cl_context &ctx,
         err    = clGetProgramBuildInfo(
             program, device, CL_PROGRAM_BUILD_LOG, LOG_SIZE, log, nullptr);
         if (log[0] != 0) {
-            VLOG(1) << "Program Build Log: " << log;
+            LOG(INFO) << "Program Build Log: " << log;
         }
-        CHECK_CL_SUCCESS(err, "compile error");
+        return nullptr;
     }
 
     cl_program linked_program = clLinkProgram(ctx,
@@ -59,7 +69,10 @@ cl_program oclk::CreateProgram_(const cl_context &ctx,
                                               nullptr,
                                               nullptr,
                                               &err);
-    CHECK_CL_SUCCESS(err, "Link Program failed");
+    if (err != CL_SUCCESS) {
+        CHECK_RTN(err, "Link Program failed");
+        ASSERT_PRINT(false, "Link Program failed");
+    }
     return linked_program;
 }
 cl_kernel oclk::LoadKernel(cl_context context,
@@ -75,14 +88,17 @@ cl_kernel oclk::LoadKernel(cl_context context,
                                         program_source_file,
                                         program_compile_options,
                                         program_link_options);
-    CHECK_NE(program, nullptr) << "program create failed";
+    ASSERT_PRINT(program != nullptr, "program create failed");
     std::string _real_kernel_name =
         kernel_name.substr(0, kernel_name.find('/'));
     int err;
     cl_kernel kernel = clCreateKernel(program, _real_kernel_name.c_str(), &err);
-    CHECK_CL_SUCCESS(err, "failed to create kernel");
-    CHECK_NE(kernel, nullptr) << "kernel create failed";
-    VLOG(2) << "Loaded kernel: " << kernel_name;
+    if (err != CL_SUCCESS && kernel != nullptr) {
+        LOG(ERROR) << "error " << err;
+        ASSERT_PRINT((err != CL_SUCCESS && kernel != nullptr),
+                     "failed to create kernel");
+    }
+    VLOG(1) << "Loaded kernel: " << kernel_name;
     return kernel;
 }
 std::vector<cl_kernel>
@@ -97,7 +113,7 @@ oclk::LoadKernel(cl_context context,
                                         program_source_file,
                                         program_compile_options,
                                         program_link_options);
-    CHECK_NE(program, nullptr) << "program create failed";
+    ASSERT_PRINT(program != nullptr, "program create failed");
     std::vector<cl_kernel> kernel_list;
     for (auto &kernel_name : kernel_name_list) {
         VLOG(2) << "Loading kernel: " << kernel_name
@@ -107,8 +123,7 @@ oclk::LoadKernel(cl_context context,
         int err;
         cl_kernel kernel =
             clCreateKernel(program, _real_kernel_name.c_str(), &err);
-        CHECK_CL_SUCCESS(err, "failed to create kernel");
-        CHECK_NE(kernel, nullptr) << "kernel create failed";
+        ASSERT_PRINT(err == 0 && kernel != nullptr, "kernel create failed");
         VLOG(2) << "Loaded kernel: " << kernel_name;
         kernel_list.push_back(kernel);
     }

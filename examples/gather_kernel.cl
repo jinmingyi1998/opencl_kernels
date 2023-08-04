@@ -10,9 +10,6 @@ kernel void gather_kernel(const global CL_DTYPE *in,
     ul y = get_global_id(1);
     if (y >= out_rows || x >= out_cols) return;
     ul in_row_idx = (y / index_size) * slice_rows + index[y % index_size];
-    if (x + VECTOR_LENGTH > out_cols) {
-        x = out_cols - VECTOR_LENGTH;
-    }
     ul from_i = in_row_idx * out_cols + x;
     ul to_i = y * out_cols + x;
     out[to_i] = in[from_i];

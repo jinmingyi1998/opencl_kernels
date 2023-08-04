@@ -15,7 +15,7 @@ cl_mem CreateBuffer(cl_context ctx, size_t size, size_t dtype_size) {
     cl_int err;
     cl_mem buf =
         clCreateBuffer(ctx, CL_MEM_READ_WRITE, byte_size, nullptr, &err);
-    CHECK_CL_SUCCESS(err, "clCreateBuffer failed");
+    ASSERT_PRINT(err == 0, "clCreateBuffer failed");
     return buf;
 }
 cl_mem CreateImage2D(cl_context ctx, size_t w, size_t h, cl_uint dtype) {
@@ -31,7 +31,7 @@ cl_mem CreateImage2D(cl_context ctx, size_t w, size_t h, cl_uint dtype) {
     };
     img = clCreateImage(ctx, CL_MEM_READ_WRITE, &format, &desc, nullptr, &err);
 
-    CHECK_CL_SUCCESS(err, "clCreateBuffer failed");
+    ASSERT_PRINT(err==0, "clCreateBuffer failed");
     return img;
 }
 std::pair<std::vector<size_t>, std::vector<size_t>>

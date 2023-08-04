@@ -1,5 +1,4 @@
 import functools
-
 import numpy as np
 
 import oclk
@@ -21,18 +20,21 @@ out_rows = functools.reduce(lambda x, y: x * y, gt.shape[: axis + 1])
 out_cols = gt.size // out_rows
 rtn = oclk.run(
     kernel_name="gather_kernel",
-    input={
-        "in": a,
-        "index": index,
-        "out": out,
-        "index_size": index.size,
-        "slice_rows": slice_rows,
-        "out_rows": out_rows,
-        "out_cols": out_cols,
-    },
+    input=[
+        {"name": "in", "value": a},
+        {
+            "name": "index",
+            "value": index,
+        },
+        {"name": "out", "value": out},
+        {"name": "index_size", "value": index.size},
+        {"name": "slice_rows", "value": slice_rows},
+        {"name": "out_rows", "value": out_rows},
+        {"name": "out_cols", "value": out_cols},
+    ],
     output=["out"],
     local_work_size=[1, 1],
-    global_work_size=gt.shape,
+    global_work_size=[out_rows, out_cols],
     timer=oclk.TimerArgs(True, 10, 1000, "gather"),
 )
 

@@ -63,7 +63,7 @@ class CMakeBuild(build_ext):
                         f"-DCMAKE_MAKE_PROGRAM:FILEPATH={ninja_executable_path}",
                     ]
                 except ImportError:
-                    print('ninja not found')
+                    print("ninja not found")
                     cmake_args += [
                         "-GUnix Makefiles",
                     ]
@@ -93,11 +93,11 @@ class CMakeBuild(build_ext):
         if not build_temp.exists():
             build_temp.mkdir(parents=True)
 
-        print('cmake args:', ' '.join(cmake_args))
+        print("cmake args:", " ".join(cmake_args))
         subprocess.run(
             ["cmake", ext.sourcedir, *cmake_args], cwd=build_temp, check=True
         )
-        print('build_args', ' '.join(build_args))
+        print("build_args:", " ".join(build_args))
         subprocess.run(
             ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
         )
@@ -114,7 +114,7 @@ setup(
     author_email="jinmingyi1998@sina.cn",
     description="A easy way to run OpenCL kernel files",
     long_description=long_desc,
-    packages=["oclk","oclk.third_party"],
+    packages=["oclk", "oclk.third_party"],
     include_package_data=True,
     ext_modules=[CMakeExtension("oclk_C")],
     cmdclass={"build_ext": CMakeBuild},

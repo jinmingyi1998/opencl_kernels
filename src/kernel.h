@@ -4,10 +4,11 @@
 
 #ifndef CLKERNELBENCH_KERNEL_H
 #define CLKERNELBENCH_KERNEL_H
-#include "common.h"
 #include <CL/cl.h>
 #include <string>
 #include <vector>
+
+#include "common.h"
 namespace oclk {
 cl_program CreateProgram_(const cl_context &ctx,
                           const cl_device_id &device,

@@ -6,12 +6,13 @@
 #define OPENCL_DEMO_TIMER_H
 
 #include <algorithm>
-#include <glog/logging.h>
 #include <ios>
 #include <map>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
+
+#include "common.h"
 namespace oclk {
 
 class TimeMonitor {

@@ -4,18 +4,43 @@
 #ifndef CLKERNELBENCH_COMMON_H
 #define CLKERNELBENCH_COMMON_H
 #include <CL/cl.h>
-#include <glog/logging.h>
 #include <map>
 #include <sstream>
 #include <string>
 #include <vector>
-#define CHECK_CL_SUCCESS(e, msg)                                               \
-    CHECK_EQ(CL_SUCCESS, e)                                                    \
-        << "rtn code: " << (signed int)e << " message:" << msg
+#include <string.h>
 
-#define CHECK_RTN_PRINT_ERR_NO_RETURN(e, msg)                                  \
-    CHECK_EQ(e, CL_SUCCESS)                                                    \
-        << "rtn code: " << (signed int)e << " message:" << msg
+#ifdef WITH_GLOG
+#include <glog/logging.h>
+#define ASSERT_PRINT(cond, msg) LOG_ASSERT(cond) << msg
+#else
+#include <iostream>
+const int INFO = 0, WARNING = 1, ERROR = 2, FATAL = 3;
+#define LOG(x) std::cout
+#define VLOG(x) std::cout
+#define ASSERT_PRINT(cond, msg)                                                \
+    do {                                                                       \
+        if (!(cond)) {                                                         \
+            std::cout << "Assert failed: " << msg;                             \
+            abort();                                                           \
+        }                                                                      \
+    } while (0)
+#endif
+
+#define CHECK_RTN(e, msg)                                                      \
+    if (e != 0)                                                                \
+    LOG(ERROR) << "rtn code: " << (signed int)e << " message:" << msg
+
+#define CHECK_CL_SUCCESS(e, msg)                                               \
+    do {                                                                       \
+        if (CL_SUCCESS != e) {                                                 \
+            LOG(ERROR) << "rtn code: " << (signed int)e << " message:" << msg; \
+            return e;                                                          \
+        }                                                                      \
+    } while (0)
+
+#define CHECK_RTN_PRINT_ERR_NO_RETURN(e, msg) CHECK_RTN(e, msg)
+
 namespace oclk {
 
 inline int binary_round_up(int value, int round_up_value) {
@@ -75,7 +100,7 @@ struct OCLENV {
         err = clGetDeviceIDs(
             platform_id, CL_DEVICE_TYPE_GPU, 0, nullptr, &num_device);
         CHECK_CL_SUCCESS(err, "Error getting device number");
-        CHECK_GT(num_device, 0) << "No devices found";
+        ASSERT_PRINT(num_device > 0, "No devices found");
         err = clGetDeviceIDs(
             platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &num_device);
         CHECK_CL_SUCCESS(err, "Error getting device");

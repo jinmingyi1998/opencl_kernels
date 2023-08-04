@@ -8,7 +8,10 @@ add_definitions(-DOCLK_VERSION_INFO=${OCLK_VERSION_INFO})
 include_directories(oclk/third_party/OpenCL/include)
 link_directories(oclk/third_party/OpenCL/lib/${CMAKE_SYSTEM_PROCESSOR})
 
-find_package(Python 3.6 COMPONENTS Interpreter Development REQUIRED)
+find_package(
+    Python 3.6
+    COMPONENTS Interpreter Development
+    REQUIRED)
 message(STATUS "${Python_INTERPRETER_ID} ${Python_VERSION}")
 message(STATUS "    libraries: ${Python_LIBRARY_DIRS}")
 message(STATUS "    includes: ${Python_INCLUDE_DIRS}")

@@ -48,7 +48,7 @@ class Runner:
         self,
         *,
         kernel_name: str,
-        input: Dict[str, Union[int, float, np.array]],
+        input: List[Dict[str, Union[int, float, np.array]]],
         output: List[str],
         local_work_size: List[int],
         global_work_size: List[int],
