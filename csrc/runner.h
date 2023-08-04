@@ -21,11 +21,11 @@ public:
         auto kernel = this->kernel_lists.at(kernel_name);
         int arg_idx = 0;
         for (auto &c : constants) {
-            CHECK_RTN_PRINT_ERR_NO_RETURN(
-                clSetKernelArg(
-                    kernel, arg_idx++, c.bytes.size(), c.bytes.data()),
-                "set constant arg failed ")
-                << arg_idx;
+            int _err = clSetKernelArg(
+                kernel, arg_idx++, c.bytes.size(), c.bytes.data());
+            if (_err != CL_SUCCESS) {
+                spdlog::error("set arg {} failed ", arg_idx);
+            }
         }
         auto run_kernel_fn = [&]() {
             int _err = clEnqueueNDRangeKernel(command_queue,
@@ -37,8 +37,10 @@ public:
                                               0,
                                               nullptr,
                                               nullptr);
-            CHECK_RTN_PRINT_ERR_NO_RETURN(_err, "clEnqueueNDRangeKernel failed")
-                << "\nkernel_name" << kernel_name;
+            if (_err != CL_SUCCESS) {
+                spdlog::error("clEnqueueNDRangeKernel failed, kernel_name: {}",
+                              kernel_name);
+            }
         };
         if (timer_args.isEnable()) {
             for (int i = 0; i < timer_args.getWarmup(); i++) {

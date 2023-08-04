@@ -1,10 +1,11 @@
 import functools
 import numpy as np
+import os
 
 import oclk
 
 oclk.init()
-oclk.load_kernel("gather_kernel.cl", "gather_kernel", " -DCL_DTYPE=float ")
+oclk.load_kernel(os.path.join(os.path.dirname(__file__),"gather_kernel.cl"), "gather_kernel", " -DCL_DTYPE=float ")
 
 a = np.arange(9 * 4 * 5 * 6 * 7 * 8).reshape((9, 4, 5, 6, 7, 8))
 a = np.float32(a)

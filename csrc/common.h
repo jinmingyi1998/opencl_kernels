@@ -4,42 +4,30 @@
 #ifndef CLKERNELBENCH_COMMON_H
 #define CLKERNELBENCH_COMMON_H
 #include <CL/cl.h>
+#include <iostream>
 #include <map>
 #include <sstream>
+#include <string.h>
 #include <string>
 #include <vector>
-#include <string.h>
 
-#ifdef WITH_GLOG
-#include <glog/logging.h>
-#define ASSERT_PRINT(cond, msg) LOG_ASSERT(cond) << msg
-#else
-#include <iostream>
-const int INFO = 0, WARNING = 1, ERROR = 2, FATAL = 3;
-#define LOG(x) std::cout
-#define VLOG(x) std::cout
+#include "spdlog/spdlog.h"
+
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
 #define ASSERT_PRINT(cond, msg)                                                \
     do {                                                                       \
         if (!(cond)) {                                                         \
-            std::cout << "Assert failed: " << msg;                             \
+            spdlog::critical("Assert failed: {}", msg);                        \
             abort();                                                           \
         }                                                                      \
     } while (0)
-#endif
 
 #define CHECK_RTN(e, msg)                                                      \
-    if (e != 0)                                                                \
-    LOG(ERROR) << "rtn code: " << (signed int)e << " message:" << msg
-
-#define CHECK_CL_SUCCESS(e, msg)                                               \
     do {                                                                       \
-        if (CL_SUCCESS != e) {                                                 \
-            LOG(ERROR) << "rtn code: " << (signed int)e << " message:" << msg; \
-            return e;                                                          \
-        }                                                                      \
+        if (e != 0)                                                            \
+            spdlog::critical("rtn code: {} message: {}", (signed int)e, msg);  \
     } while (0)
-
-#define CHECK_RTN_PRINT_ERR_NO_RETURN(e, msg) CHECK_RTN(e, msg)
 
 namespace oclk {
 
@@ -86,7 +74,9 @@ std::string parse_fields_to_name(std::map<std::string, T> &kv) {
     name = name.substr(0, name.length() - 1); // remove the last slash
     return name;
 }
-
+static inline void init_spdlog(){
+    spdlog::set_pattern("[%H:%M:%S %z][%^%l%$][%P-%t] : %v");
+}
 struct OCLENV {
     cl_platform_id platform_id     = nullptr;
     cl_device_id device_id         = nullptr;
@@ -95,15 +85,16 @@ struct OCLENV {
     cl_command_queue command_queue = nullptr;
     cl_uint numPlatforms           = 0;
     int init() {
+        init_spdlog();
         cl_int err = clGetPlatformIDs(1, &platform_id, &numPlatforms);
-        CHECK_CL_SUCCESS(err, "clGetPlatformIDs failed");
+        CHECK_RTN(err, "clGetPlatformIDs failed");
         err = clGetDeviceIDs(
             platform_id, CL_DEVICE_TYPE_GPU, 0, nullptr, &num_device);
-        CHECK_CL_SUCCESS(err, "Error getting device number");
+        CHECK_RTN(err, "Error getting device number");
         ASSERT_PRINT(num_device > 0, "No devices found");
         err = clGetDeviceIDs(
             platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &num_device);
-        CHECK_CL_SUCCESS(err, "Error getting device");
+        CHECK_RTN(err, "Error getting device");
         char deviceName[128];
         char deviceVersion[128];
         err = clGetDeviceInfo(
@@ -113,15 +104,14 @@ struct OCLENV {
                                sizeof(deviceVersion),
                                deviceVersion,
                                NULL);
-        CHECK_CL_SUCCESS(err, "Error getting device info");
-        LOG(INFO) << "Loaded device " << deviceName
-                  << " version: " << deviceVersion;
+        CHECK_RTN(err, "Error getting device info");
+        spdlog::info("Loaded device {} version {}", deviceName, deviceVersion);
         context =
             clCreateContext(nullptr, 1, &device_id, nullptr, nullptr, &err);
-        CHECK_CL_SUCCESS(err, "failed to create context");
+        CHECK_RTN(err, "failed to create context");
         command_queue = clCreateCommandQueueWithProperties(
             context, device_id, nullptr, &err);
-        CHECK_CL_SUCCESS(err, "clCreateCommandQueueWithProperties failed");
+        CHECK_RTN(err, "clCreateCommandQueueWithProperties failed");
         return 0;
     }
 };
@@ -158,11 +148,11 @@ inline void read_data_from_buffer(cl_command_queue commandQueue,
     // read from buffer, write to ptr, size in bytes
     cl_int err = clEnqueueReadBuffer(
         commandQueue, buf, true, 0, size, ptr, 0, nullptr, nullptr);
-    CHECK_RTN_PRINT_ERR_NO_RETURN(err, "clEnqueueReadBuffer failed");
+    CHECK_RTN(err, "clEnqueueReadBuffer failed");
 
     clFlush(commandQueue);
     err = clFinish(commandQueue);
-    CHECK_RTN_PRINT_ERR_NO_RETURN(err, "clFinish failed");
+    CHECK_RTN(err, "clFinish failed");
 }
 template <typename T>
 inline void read_buffer_to_vector(cl_command_queue commandQueue,
@@ -177,7 +167,7 @@ inline void write_data_to_buffer(cl_command_queue commandQueue,
                                  size_t size) {
     cl_int err = clEnqueueWriteBuffer(
         commandQueue, buf, true, 0, size, ptr, 0, nullptr, nullptr);
-    CHECK_RTN_PRINT_ERR_NO_RETURN(err, "write buffer failed");
+    CHECK_RTN(err, "write buffer failed");
 }
 template <typename T>
 inline void write_vector_to_buffer(cl_command_queue commandQueue,
@@ -206,14 +196,14 @@ inline void write_vector_to_image(cl_command_queue commandQueue,
                                      0,
                                      nullptr,
                                      nullptr);
-    CHECK_RTN_PRINT_ERR_NO_RETURN(err, "write image failed");
+    CHECK_RTN(err, "write image failed");
 }
 inline void
 clear_buffer(cl_command_queue commandQueue, cl_mem buf, size_t buffer_size) {
     cl_uint fill_zero = 0;
     cl_int err        = clEnqueueFillBuffer(
         commandQueue, buf, &fill_zero, 1, 0, buffer_size, 0, nullptr, nullptr);
-    CHECK_RTN_PRINT_ERR_NO_RETURN(err, "fill buffer failed");
+    CHECK_RTN(err, "fill buffer failed");
 }
 
 } // namespace oclk

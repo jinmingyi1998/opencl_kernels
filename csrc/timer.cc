@@ -39,12 +39,18 @@ int TimeMonitor::AddData(const std::string &name, const double &data) {
     mMonitorTotalData[name] += data;
     mMonitorTotalDataDetail[name].push_back(data);
     ++mMonitorTotalDataCnt[name];
-
-    VLOG(2) << "[" << name << "] [CUR: " << stringify(data) << " ms] "
-            << "[MOVING AVG: "
-            << stringify(mMonitorTotalData[name] / mMonitorTotalDataCnt[name])
-            << " ms] "
-            << "[CNT: " << mMonitorTotalDataCnt[name] << "] " << std::endl;
+    spdlog::info("[{}][CUR: {:4.3f}ms][MOVING AVG: {:4.3f}ms][CNT: {:3d}]",
+                 name,
+                 data,
+                 mMonitorTotalData[name] / mMonitorTotalDataCnt[name],
+                 mMonitorTotalDataCnt[name]);
+    //    std::cout << "[" << name << "] [CUR: " << stringify(data) << " ms] "
+    //            << "[MOVING AVG: "
+    //            << stringify(mMonitorTotalData[name] /
+    //            mMonitorTotalDataCnt[name])
+    //            << " ms] "
+    //            << "[CNT: " << mMonitorTotalDataCnt[name] << "] " <<
+    //            std::endl;
     return 0;
 }
 
@@ -52,17 +58,27 @@ int TimeMonitor::ShowAll() {
     const std::lock_guard<std::mutex> sLock(mMutex);
     for (auto iter = mMonitorTotalData.begin(); iter != mMonitorTotalData.end();
          ++iter) {
-        LOG(ERROR) << std::fixed << "[TOTAL][" << iter->first << "] "
-                   << "[CNT: " << mMonitorTotalDataCnt[iter->first] << "] "
-                   << "[AVG: "
-                   << stringify(mMonitorTotalData[iter->first] /
-                                mMonitorTotalDataCnt[iter->first])
-                   << " ms] "
-                   << "[STDEV: "
-                   << calc_stdev(mMonitorTotalDataDetail[iter->first])
-                   << " ms] "
-                   << "[TOTAL: " << stringify(mMonitorTotalData[iter->first])
-                   << " ms]";
+        spdlog::info("[Timer {}] [CNT: {}] [AVG: {:4.3f}ms] [STDEV {:4.3f}ms] "
+                     "[TOTAL {:4.3f}ms]",
+                     iter->first,
+                     mMonitorTotalDataCnt[iter->first],
+                     mMonitorTotalData[iter->first] /
+                         mMonitorTotalDataCnt[iter->first],
+                     calc_stdev(mMonitorTotalDataDetail[iter->first]),
+                     mMonitorTotalData[iter->first]);
+        //        std::cout << std::fixed << "[TOTAL][" << iter->first << "] "
+        //                   << "[CNT: " << mMonitorTotalDataCnt[iter->first] <<
+        //                   "] "
+        //                   << "[AVG: "
+        //                   << stringify(mMonitorTotalData[iter->first] /
+        //                                mMonitorTotalDataCnt[iter->first])
+        //                   << " ms] "
+        //                   << "[STDEV: "
+        //                   << calc_stdev(mMonitorTotalDataDetail[iter->first])
+        //                   << " ms] "
+        //                   << "[TOTAL: " <<
+        //                   stringify(mMonitorTotalData[iter->first])
+        //                   << " ms]";
     }
     return 0;
 }

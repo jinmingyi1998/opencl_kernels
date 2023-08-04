@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "runner.h"
+#include "spdlog/logger.h"
 namespace py = pybind11;
 
 #ifndef OCLK_VERSION_INFO
@@ -20,17 +21,20 @@ const std::string module_version = MACRO_STRINGIFY(OCLK_VERSION_INFO);
 
 std::shared_ptr<oclk::CLRunner> runner;
 unsigned long Init() {
-    oclk::ocl_instance.init();
+    int err = oclk::ocl_instance.init();
+    if (err != 0) {
+        spdlog::critical("init failed , error code: {}", err);
+    }else{
+        spdlog::info("init success");
+    }
     runner = std::make_shared<oclk::CLRunner>(&oclk::ocl_instance);
-    return 0;
+    return err;
 }
 unsigned long LoadKernel(std::string &kernel_filename,
                          std::string &kernel_name,
                          std::string &compile_option_string) {
     oclk::OCLENV *env = &oclk::ocl_instance;
-    LOG(INFO) << "Compiling kernel file" << kernel_filename << " kernel name "
-              << kernel_name << " compile option " << compile_option_string;
-    auto k = oclk::LoadKernel(env->context,
+    auto k            = oclk::LoadKernel(env->context,
                               env->device_id,
                               kernel_filename,
                               compile_option_string,
@@ -61,12 +65,14 @@ py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
         auto arg_dict    = arg_dicts[i].cast<py::dict>();
         std::string name = arg_dict["name"].cast<std::string>();
         auto v           = arg_dict["value"];
-        LOG(INFO) << "Parse arg: " << name << " type:" << v.get_type();
+        spdlog::info(
+            "Parsing arg: [{:>10}] type: {}", name, v.get_type().cast<py::str>().cast<std::string>());
         if (py::isinstance<py::array>(v)) {
             py::array arr = v.cast<py::array>();
-            LOG(INFO) << "    array dtype: " << arr.dtype()
-                      << " size: " << arr.size()
-                      << " data size: " << arr.nbytes() << " Bytes";
+            spdlog::info("\tarray dtype: {:>10} size: {:8d} data size: {:8d}Bytes",
+                         arr.dtype().cast<py::str>().cast<std::string>(),
+                         arr.size(),
+                         arr.nbytes());
             add_array_arg(name, arr, args);
         } else if (py::isinstance<py::int_>(v) ||
                    py::isinstance<py::float_>(v)) {
@@ -78,14 +84,12 @@ py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
                 args.emplace_back(name, v_float);
             }
         } else {
-            std::stringstream err_msg("error: unknown type, only support int, "
-                                      "float, np.array, but got");
-            err_msg << name << " type: " << v.get_type();
-            LOG(ERROR) << err_msg.str();
+            spdlog::error("error: unknown type, only support int, "
+                          "float, np.array, but got {}",
+                          v.get_type().cast<py::str>().cast<std::string>());
             return arg_dicts;
         }
     }
-    LOG(INFO) << "parse args done";
     return arg_dicts;
 }
 /**
@@ -133,9 +137,6 @@ py::list run_impl(py::kwargs &kwargs) {
         local_work_size.push_back(local_work_size_pylist[i].cast<size_t>());
     }
     auto ws = oclk::GetWorkSize(global_work_size, local_work_size);
-    for (auto &c : kernel_args) {
-        LOG(INFO) << "Arg name: " << c.name << " size: " << c.bytes.size();
-    }
     [&]() {
         std::stringstream ss;
         ss << "local_work_size= { ";
@@ -147,7 +148,7 @@ py::list run_impl(py::kwargs &kwargs) {
             ss << v << " ";
         }
         ss << "}";
-        LOG(INFO) << ss.str();
+        spdlog::info(ss.str());
     }();
     auto kernel_name    = kwargs[py::str("kernel_name")].cast<std::string>();
     auto timer_arg_dict = kwargs[py::str("timer")].cast<py::dict>();
@@ -169,7 +170,7 @@ py::list run_impl(py::kwargs &kwargs) {
 
     for (auto &s : out_arg_list) {
         auto arg_name = s.cast<std::string>();
-        LOG(INFO) << "read arg " << arg_name;
+        spdlog::info("read arg {}", arg_name);
         for (int i = 0; i < kernel_args.size(); i++) {
             auto &c = kernel_args[i];
             if (c.name == arg_name) {

@@ -36,7 +36,7 @@ class Runner:
 
             print(f"ERROR: kernel name {kernel_name} already exists!", file=sys.stderr)
             return
-        kernel_name[kernel_name] = {
+        self.kernel_list[kernel_name] = {
             "name": kernel_name,
             "file": cl_file,
             "compile_option": compile_option,

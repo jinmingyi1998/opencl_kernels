@@ -62,7 +62,6 @@ class CMakeBuild(build_ext):
         cmake_args.append(f"-DPython_ROOT_DIR={os.path.dirname(sys.executable)}")
         cmake_args.append(f"-DCMAKE_BUILD_TYPE={cfg}")
 
-        build_args = []
         # Adding CMake arguments set as environment variable
         # (needed e.g. to build for ARM OSx on conda-forge)
         if "CMAKE_ARGS" in os.environ:
@@ -71,14 +70,7 @@ class CMakeBuild(build_ext):
         # In this example, we pass in the version to C++. You might not need to.
         cmake_args += [f"-DOCLK_VERSION_INFO={__version__}"]
 
-        # Set CMAKE_BUILD_PARALLEL_LEVEL to control the parallel build level
-        # across all generators.
-        if "CMAKE_BUILD_PARALLEL_LEVEL" not in os.environ:
-            # self.parallel is a Python 3 only way to set parallel jobs by hand
-            # using -j in the build_ext call, not supported by pip or PyPA-build.
-            if hasattr(self, "parallel") and self.parallel:
-                # CMake 3.12+ only.
-                build_args += [f"-j{self.parallel}"]
+        build_args = []
 
         build_temp = Path(self.build_temp) / ext.name
         if not build_temp.exists():
