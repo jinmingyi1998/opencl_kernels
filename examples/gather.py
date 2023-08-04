@@ -5,7 +5,7 @@ import os
 import oclk
 
 oclk.init()
-oclk.load_kernel(os.path.join(os.path.dirname(__file__),"gather_kernel.cl"), "gather_kernel", " -DCL_DTYPE=float ")
+oclk.load_kernel(os.path.join(os.path.dirname(__file__), "gather_kernel.cl"), "gather_kernel", " -DCL_DTYPE=float ")
 
 a = np.arange(9 * 4 * 5 * 6 * 7 * 8).reshape((9, 4, 5, 6, 7, 8))
 a = np.float32(a)
@@ -23,10 +23,7 @@ rtn = oclk.run(
     kernel_name="gather_kernel",
     input=[
         {"name": "in", "value": a},
-        {
-            "name": "index",
-            "value": index,
-        },
+        {"name": "index", "value": index},
         {"name": "out", "value": out},
         {"name": "index_size", "value": index.size},
         {"name": "slice_rows", "value": slice_rows},

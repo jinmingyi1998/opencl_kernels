@@ -74,7 +74,12 @@ timer = oclk.TimerArgs(
 )
 runner.run(
     kernel_name="add",
-    input={"a": a, "out": out, "int_arg": 1, "float_arg": 12.34},
+    input=[
+        {"name": "a", "value": a, },
+        {"name": "out", "value": out, },
+        {"name": "int_arg", "value": 1, },
+        {"name": "float_arg", "value": 12.34}
+    ],
     output=['out'],
     local_work_size=[1, 1],
     global_work_size=a.shape,
@@ -101,7 +106,12 @@ oclk.init()
 oclk.load_kernel("add.cl", "add", "")
 r = oclk.run(
     kernel_name="add",
-    input={"a": a, "out": out, "int_arg": 1, "float_arg": 12.34},
+    input=[
+        {"name": "a", "value": a, },
+        {"name": "out", "value": out, },
+        {"name": "int_arg", "value": 1, },
+        {"name": "float_arg", "value": 12.34}
+    ],
     output=['out'],
     local_work_size=[1, 1],
     global_work_size=a.shape
@@ -145,13 +155,13 @@ timer = TimerArgs(enable=True,
                   name='timer_name'
                   )
 run(kernel_name='add',
-    input={
-        'a': a,
-        'b': b,
-        'int_arg': 1,
-        'float_arg': 23.45,
-        'c': c,
-    },
+    input=[
+        {"name": "a", "value": a, },
+        {"name": "b", "value": b, },
+        {"name": "int_arg", "value": 1, },
+        {"name": "float_arg", "value": 12.34},
+        {"name": "c", "value": c}
+    ],
     output=['c'],
     local_work_size=[1, 1, 1],
     global_work_size=a.shape,
