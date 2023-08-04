@@ -1,8 +1,17 @@
 # OpenCL Kernel Python Wrapper
 
 ## Install
+### Install from wheel
 
-### Clone this repo
+_prebuild wheel has no glog, output might be ugly_
+
+download wheel from [release](https://github.com/jinmingyi1998/opencl_kernels/releases) and install
+
+### Compile from source
+
+If you have glog installed, it is recommended to compile this package from source
+
+**Clone this repo**
 
 clone by http
 
@@ -16,7 +25,7 @@ with ssh
 git clone --recursive git@github.com:jinmingyi1998/opencl_kernels.git
 ```
 
-### Install
+**Install**
 
 ```shell
 cd opencl_kernels

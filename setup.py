@@ -31,22 +31,7 @@ class CMakeBuild(build_ext):
         # CMake lets you override the generator - we need to check this.
         # Can be set with Conda-Build, for example.
         cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
-
-        cmake_args = [
-            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}oclk{os.sep}",
-            f"-DPython_ROOT_DIR={os.path.dirname(sys.executable)}",
-            f"-DCMAKE_BUILD_TYPE={cfg}",
-        ]
-
-        build_args = []
-        # Adding CMake arguments set as environment variable
-        # (needed e.g. to build for ARM OSx on conda-forge)
-        if "CMAKE_ARGS" in os.environ:
-            cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
-
-        # In this example, we pass in the version to C++. You might not need to.
-        cmake_args += [f"-DOCLK_VERSION_INFO={__version__}"]
-
+        cmake_args = []
         if self.compiler.compiler_type != "msvc":
             # Using Ninja-build since it a) is available as a wheel and b)
             # multithreads automatically. MSVC would require all variables be
@@ -64,13 +49,6 @@ class CMakeBuild(build_ext):
                     ]
                 except ImportError:
                     print("ninja not found")
-                    cmake_args += [
-                        "-GUnix Makefiles",
-                    ]
-            else:
-                cmake_args += [
-                    "-GUnix Makefiles",
-                ]
 
         else:
             print("only support Linux", file=sys.stderr)
@@ -79,6 +57,19 @@ class CMakeBuild(build_ext):
         if sys.platform.startswith("darwin"):
             print("only support Linux", file=sys.stderr)
             exit(1)
+
+        cmake_args.append(f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}oclk{os.sep}")
+        cmake_args.append(f"-DPython_ROOT_DIR={os.path.dirname(sys.executable)}")
+        cmake_args.append(f"-DCMAKE_BUILD_TYPE={cfg}")
+
+        build_args = []
+        # Adding CMake arguments set as environment variable
+        # (needed e.g. to build for ARM OSx on conda-forge)
+        if "CMAKE_ARGS" in os.environ:
+            cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
+
+        # In this example, we pass in the version to C++. You might not need to.
+        cmake_args += [f"-DOCLK_VERSION_INFO={__version__}"]
 
         # Set CMAKE_BUILD_PARALLEL_LEVEL to control the parallel build level
         # across all generators.
