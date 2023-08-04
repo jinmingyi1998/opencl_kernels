@@ -1,3 +1,4 @@
+# run in docker quay.io/pypa/manylinux_2_28_x86_64:latest
 .PHONY: all  build_all clean cp36 cp37 cp38 cp39 cp310 cp311 cp312
 
 all: build_all
