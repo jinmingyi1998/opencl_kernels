@@ -105,7 +105,6 @@ def main():
     r.load_kernel(kernel_file, 'add_batch', '-DBATCH_SIZE=4')
 
     add()
-    return
     add_constant()
     add_batch()
 
