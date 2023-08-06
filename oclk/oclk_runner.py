@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
@@ -30,18 +30,32 @@ class Runner:
         return super().__new__(cls)
 
     @check_init
-    def load_kernel(self, cl_file, kernel_name, compile_option):
-        if kernel_name in self.kernel_list:
-            import sys
+    def load_kernel(
+        self,
+        cl_file: str,
+        kernel_name: Union[str, List[str]],
+        compile_option: Optional[Union[str, List[str]]] = None,
+    ):
+        if compile_option is None:
+            compile_option = ""
+        if isinstance(compile_option, list):
+            compile_option = " ".join(compile_option)
 
-            print(f"ERROR: kernel name {kernel_name} already exists!", file=sys.stderr)
-            return
-        self.kernel_list[kernel_name] = {
-            "name": kernel_name,
-            "file": cl_file,
-            "compile_option": compile_option,
-        }
-        F.loak_kernel(cl_file, kernel_name, compile_option)
+        if isinstance(kernel_name, str):
+            kernel_name = [kernel_name]
+        for kn in kernel_name:
+            if kn in self.kernel_list:
+                import sys
+
+                print(f"ERROR: kernel name {kn} already exists!", file=sys.stderr)
+                return
+            err = F.loak_kernel(cl_file, kn, compile_option)
+            if err == 0:
+                self.kernel_list[kn] = {
+                    "name": kn,
+                    "file": cl_file,
+                    "compile_option": compile_option,
+                }
 
     @check_init
     def run(
@@ -56,5 +70,11 @@ class Runner:
         timer: Union[Dict, F.TimerArgs] = F.TimerArgsDisabled,
     ) -> List[np.ndarray]:
         return F.run(
-            kernel_name, input, output, local_work_size, global_work_size, wait, timer
+            kernel_name=kernel_name,
+            input=input,
+            output=output,
+            local_work_size=local_work_size,
+            global_work_size=global_work_size,
+            wait=wait,
+            timer=timer,
         )
