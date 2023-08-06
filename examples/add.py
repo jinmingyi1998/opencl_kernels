@@ -17,7 +17,7 @@ def add():
     r = Runner()
     a = np.random.random([64, 64])
     a = np.ascontiguousarray(a, dtype=np.float32)
-    b = np.random.random([64, 64, 64, 64])
+    b = np.random.random(a.shape)
     b = np.ascontiguousarray(b, dtype=np.float32)
 
     out = np.zeros_like(a)
