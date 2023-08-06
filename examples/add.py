@@ -1,20 +1,20 @@
 from typing import Dict, List, Union
-
+import os
 import numpy as np
 
 from oclk import Runner, TimerArgs
 
 
 def wrap_args(**kwargs) -> List[Dict[str, Union[str, np.ndarray, int, float]]]:
-    """
+    '''
     easily make the arg dict
-    """
-    return [{"name": k, "value": v} for k, v in kwargs.items()]
+    '''
+    return [{'name': k, 'value': v} for k, v in kwargs.items()]
 
 
 def add():
     r = Runner()
-    a = np.random.random([64, 64, 64, 64])
+    a = np.random.random([64, 64])
     a = np.ascontiguousarray(a, dtype=np.float32)
     b = np.random.random([64, 64, 64, 64])
     b = np.ascontiguousarray(b, dtype=np.float32)
@@ -25,14 +25,14 @@ def add():
     arr_length = a.size
 
     r.run(
-        kernel_name="add",
+        kernel_name='add',
         input=[
-            {"name": "a", "value": a},
-            {"name": "b", "value": b},
-            {"name": "length", "value": arr_length},
-            {"name": "out", "value": out},
+            {'name': 'a', 'value': a},
+            {'name': 'b', 'value': b},
+            {'name': 'length', 'value': arr_length, 'type': 'int'},
+            {'name': 'out', 'value': out},
         ],
-        output=["out"],
+        output=['out'],
         local_work_size=[1],
         global_work_size=[arr_length],
     )
@@ -52,11 +52,11 @@ def add_constant():
     out = np.zeros_like(a)
     out = np.ascontiguousarray(out, dtype=np.float32)
 
-    timer = TimerArgs(True, 1, 10, "add_constant")
+    timer = TimerArgs(True, 1, 10, 'add_constant')
     r.run(
-        kernel_name="add_constant",
+        kernel_name='add_constant',
         input=wrap_args(a=a, x=x, length=arr_length, out=out),
-        output=["out"],
+        output=['out'],
         local_work_size=[1],
         global_work_size=[arr_length],
         wait=True,
@@ -77,11 +77,11 @@ def add_batch():
     out = np.zeros_like(a)
     out = np.ascontiguousarray(out, dtype=np.float32)
     arr_length = a.size
-    timer = TimerArgs(True, 10, 100, "add_batch")
+    timer = TimerArgs(True, 10, 100, 'add_batch')
     r.run(
-        kernel_name="add_batch",
+        kernel_name='add_batch',
         input=wrap_args(a=a, b=b, length=arr_length, out=out),
-        output=["out"],
+        output=['out'],
         local_work_size=[1],
         global_work_size=[arr_length // 4],
         wait=True,
@@ -97,13 +97,18 @@ def add_batch():
 
 def main():
     r = Runner()  # first init
-    r.load_kernel("add.cl", ["add", "add_constant"])
-    r.load_kernel("add.cl", "add_batch", "-DBATCH_SIZE=4")
+    kernel_file = os.path.join(
+        os.path.dirname(__file__),
+        'add.cl'
+    )
+    r.load_kernel(kernel_file, ['add', 'add_constant'])
+    r.load_kernel(kernel_file, 'add_batch', '-DBATCH_SIZE=4')
 
     add()
+    return
     add_constant()
     add_batch()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

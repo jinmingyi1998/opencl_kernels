@@ -64,12 +64,34 @@ py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
             add_array_arg(name, arr, args);
         } else if (py::isinstance<py::int_>(v) ||
                    py::isinstance<py::float_>(v)) {
-            if (py::isinstance<py::int_>(v)) {
-                long v_int = v.cast<long>();
-                args.emplace_back(name, v_int);
+            if (arg_dict.contains("type")) {
+                std::string type_str = arg_dict["type"].cast<std::string>();
+                spdlog::info("        type string: {}", type_str);
+                if (type_str == "float") {
+                    float vv = v.cast<float>();
+                    args.emplace_back(name, vv);
+                } else if (type_str == "double") {
+                    double vv = v.cast<double>();
+                    args.emplace_back(name, vv);
+                } else if (type_str == "int" || type_str == "unsigned int") {
+                    unsigned int vv = v.cast<unsigned int>();
+                    args.emplace_back(name, vv);
+                } else if (type_str == "long" || type_str == "unsigned long") {
+                    unsigned long vv = v.cast<long>();
+                    args.emplace_back(name, vv);
+                } else {
+                    spdlog::error("Unknown type {}", type_str);
+                }
             } else {
-                float v_float = v.cast<float>();
-                args.emplace_back(name, v_float);
+                if (py::isinstance<py::int_>(v)) {
+                    long v_int = v.cast<long>();
+                    args.emplace_back(name, v_int);
+                    spdlog::info("parse arg int");
+                } else {
+                    float v_float = v.cast<float>();
+                    args.emplace_back(name, v_float);
+                    spdlog::info("parse arg float");
+                }
             }
         } else {
             spdlog::error("error: unknown type, only support int, "
@@ -109,7 +131,7 @@ py::list run_impl(py::kwargs &kwargs) {
     parse_args(kwargs["input"].cast<py::list>(), kernel_args);
     /** arg_list is list of dict:
      * [
-     *      {"name":"something0", "value":12312},
+     *      {"name":"something0", "value":12312, "type": "float"},
      *      {"name":"something1", "value":45.45},
      *      {"name":"something2", "value":np.array([1,2,3],dtype=np.float32)}
      * ]
@@ -165,9 +187,8 @@ py::list run_impl(py::kwargs &kwargs) {
                 memcpy(&mem, c.bytes.data(), c.bytes.size());
                 py::array arr = (in_arg_list[i].cast<py::dict>())["value"]
                                     .cast<py::array>();
-                spdlog::info("read arg [{}] size: {:9d} Bytes",
-                             arg_name,
-                             arr.nbytes());
+                spdlog::info(
+                    "read arg [{}] size: {:9d} Bytes", arg_name, arr.nbytes());
                 oclk::read_data_from_buffer(
                     env->command_queue, mem, arr.mutable_data(), arr.nbytes());
                 break;
