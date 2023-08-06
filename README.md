@@ -1,9 +1,20 @@
 # OpenCL Kernel Python Wrapper
 
 ## Install
+
+### Requirements
+
+* OpenCL GPU hardware
+* numpy
+* cmake(if compile from source)
+
 ### Install from wheel
 
-download wheel from [release](https://github.com/jinmingyi1998/opencl_kernels/releases) and install
+```shell
+pip install pyoclk
+```
+
+or download wheel from [release](https://github.com/jinmingyi1998/opencl_kernels/releases) and install
 
 ### Compile from source
 
@@ -27,12 +38,8 @@ git clone --recursive git@github.com:jinmingyi1998/opencl_kernels.git
 cd opencl_kernels
 python setup.py install
 ```
-***DO NOT move this directory after install***
-### Requirements
 
-* OpenCL GPU hardware
-* numpy
-* cmake > 3.16
+***DO NOT move this directory after install***
 
 ## Usage
 
@@ -139,14 +146,23 @@ def run(*, kernel_name: str,
 ```
 
 * input: Dictionary to set input args, in the same order as kernel function
-  * **args from np.array should be contiguous array**
-  * constant args only support (will support more types):
-    * python type: float -> c type: float
-    * python type: int   -> c type: long
+    * **args from np.array should be contiguous array**
+    * constant args:
+        * python type: float -> c type: float
+        * python type: int -> c type: long
+        * or specify c type with field "type", support types:
+            * [unsigned] int
+            * [unsigned] long
+            * float
+            * double
 * output: List of names to specify which array will be get back from GPU buffer
-* local_work_size/global_work_work: list of integer, specified work sizes
+* local_work_size/global_work_work: list of integer, specified work sizes. **local_work_size can be set to `[-1]`, then
+  will pass `nullptr` to `clEnqueueNDRangeKernel`**
 * wait: Optional, default true, wait for GPU
 * timer: Optional, arguments to set up a timer for benchmark kernels
+  * warmup: recycle times before timing
+  * repeat: repeat multiple times and get ***AVERAGE TIME*** of multiple times, the result is `elapsed time / repeat`
+  * name: name of a global timer
 
 #### example
 
@@ -163,7 +179,7 @@ run(kernel_name='add',
     input=[
         {"name": "a", "value": a, },
         {"name": "b", "value": b, },
-        {"name": "int_arg", "value": 1, },
+        {"name": "int_arg", "value": 1, "type": "int"},
         {"name": "float_arg", "value": 12.34},
         {"name": "c", "value": c}
     ],
