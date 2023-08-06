@@ -20,7 +20,9 @@ public:
     static int Init(const std::string &name);
     static int AddData(const std::string &name, const double &data);
     static int ShowAll();
+    static int ShowTimer(const std::string &name);
     static int Clear();
+    int DumpObj(const std::string &name);
 
 public:
     /**

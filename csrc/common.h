@@ -31,6 +31,10 @@
 
 namespace oclk {
 
+static std::vector<cl_mem> allocated_gpumem;
+
+int release_allocated_gpumem();
+
 inline int binary_round_up(int value, int round_up_value) {
     return (value + round_up_value - 1) & (-round_up_value);
 }
@@ -74,7 +78,7 @@ std::string parse_fields_to_name(std::map<std::string, T> &kv) {
     name = name.substr(0, name.length() - 1); // remove the last slash
     return name;
 }
-static inline void init_spdlog(){
+static inline void init_spdlog() {
     spdlog::set_pattern("[%H:%M:%S %z][%^%l%$][%P-%t] : %v");
 }
 struct OCLENV {
@@ -138,9 +142,9 @@ struct ArgWrapper {
  * @param local_work_size
  * @return pair(global_work_size, local_work_size)
  */
-std::pair<std::vector<size_t>, std::vector<size_t>>
-GetWorkSize(std::vector<size_t> global_work_size,
-            std::vector<size_t> local_work_size);
+std::pair<std::vector<long>, std::vector<long>>
+GetWorkSize(std::vector<long> global_work_size,
+            std::vector<long> local_work_size);
 inline void read_data_from_buffer(cl_command_queue commandQueue,
                                   cl_mem buf,
                                   void *ptr,

@@ -14,52 +14,10 @@ public:
     void RunKernel(const std::string &kernel_name,
                    std::vector<ArgWrapper> &constants,
                    size_t dim,
-                   size_t *global_work_size,
-                   size_t *local_work_size,
+                   long *global_work_size,
+                   long *local_work_size,
                    bool wait            = true,
-                   TimerArgs timer_args = disabled_timer_arg) {
-        auto kernel = this->kernel_lists.at(kernel_name);
-        int arg_idx = 0;
-        for (auto &c : constants) {
-            int _err = clSetKernelArg(
-                kernel, arg_idx++, c.bytes.size(), c.bytes.data());
-            if (_err != CL_SUCCESS) {
-                spdlog::error("set arg {} failed ", arg_idx);
-            }
-        }
-        auto run_kernel_fn = [&]() {
-            int _err = clEnqueueNDRangeKernel(command_queue,
-                                              kernel,
-                                              dim,
-                                              nullptr,
-                                              global_work_size,
-                                              local_work_size,
-                                              0,
-                                              nullptr,
-                                              nullptr);
-            if (_err != CL_SUCCESS) {
-                spdlog::error("clEnqueueNDRangeKernel failed, kernel_name: {}",
-                              kernel_name);
-            }
-        };
-        if (timer_args.isEnable()) {
-            for (int i = 0; i < timer_args.getWarmup(); i++) {
-                run_kernel_fn();
-            }
-            TIMER_KERNEL_BLOCK_REPEAT(timer_args.getTimerName(),
-                                      timer_args.getRepeat(),
-                                      command_queue,
-                                      { run_kernel_fn(); });
-            TimeMonitor::ShowAll();
-            TimeMonitor::Clear();
-        } else {
-            run_kernel_fn();
-            if (wait) {
-                clFlush(command_queue);
-                clFinish(command_queue);
-            }
-        }
-    }
+                   TimerArgs timer_args = disabled_timer_arg);
 
 private:
     cl_context context;

@@ -44,16 +44,42 @@ int TimeMonitor::AddData(const std::string &name, const double &data) {
                  data,
                  mMonitorTotalData[name] / mMonitorTotalDataCnt[name],
                  mMonitorTotalDataCnt[name]);
-    //    std::cout << "[" << name << "] [CUR: " << stringify(data) << " ms] "
-    //            << "[MOVING AVG: "
-    //            << stringify(mMonitorTotalData[name] /
-    //            mMonitorTotalDataCnt[name])
-    //            << " ms] "
-    //            << "[CNT: " << mMonitorTotalDataCnt[name] << "] " <<
-    //            std::endl;
+    return 0;
+}
+int TimeMonitor::ShowTimer(const std::string &name) {
+    const std::lock_guard<std::mutex> sLock(mMutex);
+    auto iter = mMonitorTotalData.find(name);
+    if (iter == mMonitorTotalData.end()) {
+        spdlog::error("Timer [{}] not found!", name);
+        return 1;
+    }
+
+    spdlog::info("[Timer {}] [CNT: {}] [AVG: {:4.3f}ms] [STDEV {:4.3f}ms] "
+                 "[TOTAL {:4.3f}ms]",
+                 iter->first,
+                 mMonitorTotalDataCnt[iter->first],
+                 mMonitorTotalData[iter->first] /
+                     mMonitorTotalDataCnt[iter->first],
+                 calc_stdev(mMonitorTotalDataDetail[iter->first]),
+                 mMonitorTotalData[iter->first]);
     return 0;
 }
 
+/**
+ * return a object:
+ * {
+ *      "name": "",
+ *      "count":"", // the number of calls
+ *      "average": 1.23f,
+ *      "std": 1.23f,
+ *      "total": 1.23f
+ * }
+ * @param name
+ * @return
+ */
+int TimeMonitor::DumpObj(const std::string& name){
+    return 0;
+}
 int TimeMonitor::ShowAll() {
     const std::lock_guard<std::mutex> sLock(mMutex);
     for (auto iter = mMonitorTotalData.begin(); iter != mMonitorTotalData.end();
@@ -66,19 +92,6 @@ int TimeMonitor::ShowAll() {
                          mMonitorTotalDataCnt[iter->first],
                      calc_stdev(mMonitorTotalDataDetail[iter->first]),
                      mMonitorTotalData[iter->first]);
-        //        std::cout << std::fixed << "[TOTAL][" << iter->first << "] "
-        //                   << "[CNT: " << mMonitorTotalDataCnt[iter->first] <<
-        //                   "] "
-        //                   << "[AVG: "
-        //                   << stringify(mMonitorTotalData[iter->first] /
-        //                                mMonitorTotalDataCnt[iter->first])
-        //                   << " ms] "
-        //                   << "[STDEV: "
-        //                   << calc_stdev(mMonitorTotalDataDetail[iter->first])
-        //                   << " ms] "
-        //                   << "[TOTAL: " <<
-        //                   stringify(mMonitorTotalData[iter->first])
-        //                   << " ms]";
     }
     return 0;
 }
@@ -110,13 +123,13 @@ TimerArgs::TimerArgs(bool Enable,
     , enable(Enable)
     , timer_name(TimerName) { }
 unsigned long TimerArgs::getWarmup() const { return warmup; }
-void TimerArgs::setWarmup(unsigned long Warmup) { warmup = Warmup; }
 unsigned long TimerArgs::getRepeat() const { return repeat; }
-void TimerArgs::setRepeat(unsigned long Repeat) { repeat = Repeat; }
 bool TimerArgs::isEnable() const { return enable; }
-void TimerArgs::setEnable(bool Enable) { enable = Enable; }
 const std::string &TimerArgs::getTimerName() const { return timer_name; }
-void TimerArgs::setTimerName(const std::string &TimerName) {
-    timer_name = TimerName;
-}
+// void TimerArgs::setWarmup(unsigned long Warmup) { warmup = Warmup; }
+// void TimerArgs::setRepeat(unsigned long Repeat) { repeat = Repeat; }
+// void TimerArgs::setEnable(bool Enable) { enable = Enable; }
+// void TimerArgs::setTimerName(const std::string &TimerName) {
+//     timer_name = TimerName;
+// }
 } // namespace oclk

@@ -16,6 +16,7 @@ cl_mem CreateBuffer(cl_context ctx, size_t size, size_t dtype_size) {
     cl_mem buf =
         clCreateBuffer(ctx, CL_MEM_READ_WRITE, byte_size, nullptr, &err);
     ASSERT_PRINT(err == 0, "clCreateBuffer failed");
+    allocated_gpumem.push_back(buf);
     return buf;
 }
 cl_mem CreateImage2D(cl_context ctx, size_t w, size_t h, cl_uint dtype) {
@@ -31,12 +32,13 @@ cl_mem CreateImage2D(cl_context ctx, size_t w, size_t h, cl_uint dtype) {
     };
     img = clCreateImage(ctx, CL_MEM_READ_WRITE, &format, &desc, nullptr, &err);
 
-    ASSERT_PRINT(err==0, "clCreateBuffer failed");
+    ASSERT_PRINT(err == 0, "clCreateBuffer failed");
+    allocated_gpumem.push_back(img);
     return img;
 }
-std::pair<std::vector<size_t>, std::vector<size_t>>
-GetWorkSize(std::vector<size_t> global_work_size,
-            std::vector<size_t> local_work_size) {
+std::pair<std::vector<long>, std::vector<long>>
+GetWorkSize(std::vector<long> global_work_size,
+            std::vector<long> local_work_size) {
     if (global_work_size.size() != local_work_size.size() ||
         global_work_size.size() > 3 || global_work_size.size() < 1) {
         std::stringstream ss;
@@ -46,13 +48,21 @@ GetWorkSize(std::vector<size_t> global_work_size,
     }
     for (int i = 0; i < global_work_size.size(); i++) {
         if (global_work_size.at(i) == 0) break;
+        global_work_size.at(i) = roundup_value(global_work_size.at(i), 16);
+        if (local_work_size.at(i) < 0) continue;
         if (local_work_size.at(i) == 0) local_work_size.at(i) = 1;
         global_work_size.at(i) =
             roundup_value(global_work_size.at(i), local_work_size.at(i));
-        global_work_size.at(i) = roundup_value(global_work_size.at(i), 16);
         global_work_size.at(i) =
             std::max(global_work_size.at(i), local_work_size.at(i));
     }
     return std::make_pair(global_work_size, local_work_size);
+}
+int release_allocated_gpumem() {
+    for (int i = 0; i < allocated_gpumem.size(); i++) {
+        clReleaseMemObject(allocated_gpumem.at(i));
+    }
+    allocated_gpumem.clear();
+    return 0;
 }
 } // namespace oclk

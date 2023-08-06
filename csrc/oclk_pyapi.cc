@@ -32,13 +32,13 @@ unsigned long LoadKernel(std::string &kernel_filename,
 
 inline void add_array_arg(std::string &arg_name,
                           py::array &arr,
-                          std::vector<oclk::ArgWrapper> &constants) {
+                          std::vector<oclk::ArgWrapper> &args) {
     oclk::OCLENV *env = &oclk::ocl_instance;
     size_t array_size = arr.size();
     auto mem = oclk::CreateBuffer(env->context, array_size, arr.itemsize());
     oclk::write_data_to_buffer(
         env->command_queue, mem, (void *)arr.data(), arr.nbytes());
-    constants.emplace_back(arg_name, mem);
+    args.emplace_back(arg_name, mem);
 }
 /**
  * parse arg from kwargs dict, meanwhile modify args vector
@@ -57,7 +57,7 @@ py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
         if (py::isinstance<py::array>(v)) {
             py::array arr = v.cast<py::array>();
             spdlog::info(
-                "\tarray dtype: {:>10} size: {:8d} data size: {:8d}Bytes",
+                "    array dtype: {:>10} size: {:8d} data size: {:8d}Bytes",
                 arr.dtype().cast<py::str>().cast<std::string>(),
                 arr.size(),
                 arr.nbytes());
@@ -119,10 +119,10 @@ py::list run_impl(py::kwargs &kwargs) {
         kwargs[py::str("global_work_size")].cast<py::list>();
     auto local_work_size_pylist =
         kwargs[py::str("local_work_size")].cast<py::list>();
-    std::vector<size_t> global_work_size, local_work_size;
+    std::vector<long> global_work_size, local_work_size;
     for (int i = 0; i < global_work_size_pylist.size(); i++) {
-        global_work_size.push_back(global_work_size_pylist[i].cast<size_t>());
-        local_work_size.push_back(local_work_size_pylist[i].cast<size_t>());
+        global_work_size.push_back(global_work_size_pylist[i].cast<long>());
+        local_work_size.push_back(local_work_size_pylist[i].cast<long>());
     }
     auto ws = oclk::GetWorkSize(global_work_size, local_work_size);
     [&]() {
@@ -158,11 +158,13 @@ py::list run_impl(py::kwargs &kwargs) {
 
     for (auto &s : out_arg_list) {
         auto arg_name = s.cast<std::string>();
-        spdlog::info("read arg {}", arg_name);
         for (int i = 0; i < kernel_args.size(); i++) {
             auto &c = kernel_args[i];
             if (c.name == arg_name) {
                 cl_mem mem;
+                spdlog::info("read arg [{}] size: {:9d} Bytes",
+                             arg_name,
+                             c.bytes.size());
                 memcpy(&mem, c.bytes.data(), c.bytes.size());
                 py::array arr = (in_arg_list[i].cast<py::dict>())["value"]
                                     .cast<py::array>();
@@ -172,5 +174,6 @@ py::list run_impl(py::kwargs &kwargs) {
             }
         }
     }
+    oclk::release_allocated_gpumem();
     return out_arg_list;
 }
