@@ -77,9 +77,7 @@ int TimeMonitor::ShowTimer(const std::string &name) {
  * @param name
  * @return
  */
-int TimeMonitor::DumpObj(const std::string& name){
-    return 0;
-}
+int TimeMonitor::DumpObj(const std::string &name) { return 0; }
 int TimeMonitor::ShowAll() {
     const std::lock_guard<std::mutex> sLock(mMutex);
     for (auto iter = mMonitorTotalData.begin(); iter != mMonitorTotalData.end();

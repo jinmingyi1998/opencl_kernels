@@ -21,51 +21,48 @@ void CLRunner::RunKernel(const std::string &kernel_name,
                          long *local_work_size,
                          bool wait,
                          TimerArgs timer_args) {
-    try {
-        auto kernel = this->kernel_lists.at(kernel_name);
-        int arg_idx = 0;
-        for (auto &c : constants) {
-            int _err = clSetKernelArg(
-                kernel, arg_idx++, c.bytes.size(), c.bytes.data());
-            if (_err != CL_SUCCESS) {
-                spdlog::error("set arg {} failed ", arg_idx);
-            }
+    auto kernel = this->kernel_lists.at(kernel_name);
+    int arg_idx = 0;
+    for (auto &c : constants) {
+        int _err =
+            clSetKernelArg(kernel, arg_idx++, c.bytes.size(), c.bytes.data());
+        if (_err != CL_SUCCESS) {
+            spdlog::error("set arg {} failed, err: {}", arg_idx, _err);
         }
-        if (local_work_size[0] == -1) {
-            local_work_size = nullptr;
+    }
+    if (local_work_size[0] == -1) {
+        local_work_size = nullptr;
+    }
+    auto run_kernel_fn = [&]() {
+        int _err = clEnqueueNDRangeKernel(command_queue,
+                                          kernel,
+                                          dim,
+                                          nullptr,
+                                          (size_t *)global_work_size,
+                                          (size_t *)local_work_size,
+                                          0,
+                                          nullptr,
+                                          nullptr);
+        if (_err != CL_SUCCESS) {
+            spdlog::error("clEnqueueNDRangeKernel failed, kernel_name: {}",
+                          kernel_name);
         }
-        auto run_kernel_fn = [&]() {
-            int _err = clEnqueueNDRangeKernel(command_queue,
-                                              kernel,
-                                              dim,
-                                              nullptr,
-                                              (size_t *)global_work_size,
-                                              (size_t *)local_work_size,
-                                              0,
-                                              nullptr,
-                                              nullptr);
-            if (_err != CL_SUCCESS) {
-                spdlog::error("clEnqueueNDRangeKernel failed, kernel_name: {}",
-                              kernel_name);
-            }
-        };
-        if (timer_args.isEnable()) {
-            for (int i = 0; i < timer_args.getWarmup(); i++) {
-                run_kernel_fn();
-            }
-            TIMER_KERNEL_BLOCK_REPEAT(timer_args.getTimerName(),
-                                      timer_args.getRepeat(),
-                                      command_queue,
-                                      { run_kernel_fn(); });
-            TimeMonitor::ShowTimer(timer_args.getTimerName());
-        } else {
+    };
+    if (timer_args.isEnable()) {
+        for (int i = 0; i < timer_args.getWarmup(); i++) {
             run_kernel_fn();
-            if (wait) {
-                clFlush(command_queue);
-                clFinish(command_queue);
-            }
         }
-    } catch (const std::exception &e) {
+        TIMER_KERNEL_BLOCK_REPEAT(timer_args.getTimerName(),
+                                  timer_args.getRepeat(),
+                                  command_queue,
+                                  { run_kernel_fn(); });
+        TimeMonitor::ShowTimer(timer_args.getTimerName());
+    } else {
+        run_kernel_fn();
+        if (wait) {
+            clFlush(command_queue);
+            clFinish(command_queue);
+        }
     }
     return;
 }
