@@ -162,12 +162,12 @@ py::list run_impl(py::kwargs &kwargs) {
             auto &c = kernel_args[i];
             if (c.name == arg_name) {
                 cl_mem mem;
-                spdlog::info("read arg [{}] size: {:9d} Bytes",
-                             arg_name,
-                             c.bytes.size());
                 memcpy(&mem, c.bytes.data(), c.bytes.size());
                 py::array arr = (in_arg_list[i].cast<py::dict>())["value"]
                                     .cast<py::array>();
+                spdlog::info("read arg [{}] size: {:9d} Bytes",
+                             arg_name,
+                             arr.nbytes());
                 oclk::read_data_from_buffer(
                     env->command_queue, mem, arr.mutable_data(), arr.nbytes());
                 break;

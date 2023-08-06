@@ -58,7 +58,9 @@ class CMakeBuild(build_ext):
             print("only support Linux", file=sys.stderr)
             exit(1)
 
-        cmake_args.append(f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}oclk{os.sep}")
+        cmake_args.append(
+            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}oclk{os.sep}"
+        )
         cmake_args.append(f"-DPython_ROOT_DIR={os.path.dirname(sys.executable)}")
         cmake_args.append(f"-DCMAKE_BUILD_TYPE={cfg}")
 
