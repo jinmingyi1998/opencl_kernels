@@ -100,6 +100,7 @@ import oclk
 
 a = np.random.rand(100, 100).reshape([10, -1])
 a = np.float32(a)
+
 out = np.zeros(a.shape)
 out = np.float32(out)
 oclk.init()
@@ -138,6 +139,10 @@ def run(*, kernel_name: str,
 ```
 
 * input: Dictionary to set input args, in the same order as kernel function
+  * **args from np.array should be contiguous array**
+  * constant args only support (will support more types):
+    * python type: float -> c type: float
+    * python type: int   -> c type: long
 * output: List of names to specify which array will be get back from GPU buffer
 * local_work_size/global_work_work: list of integer, specified work sizes
 * wait: Optional, default true, wait for GPU
@@ -168,7 +173,3 @@ run(kernel_name='add',
     timer=timer
     )
 ```
-
-## Known Issues
-
-* TODO: GPU Buffer never deleted, which cased memory leak. There will be a memory pool
