@@ -49,7 +49,9 @@ GetWorkSize(std::vector<long> global_work_size,
     for (int i = 0; i < global_work_size.size(); i++) {
         if (global_work_size.at(i) == 0) break;
         global_work_size.at(i) = roundup_value(global_work_size.at(i), 16);
-        if (local_work_size.at(i) < 0) continue;
+        if (local_work_size.size() <= global_work_size.size() &&
+            local_work_size.front() == -1)
+            continue;
         if (local_work_size.at(i) == 0) local_work_size.at(i) = 1;
         global_work_size.at(i) =
             roundup_value(global_work_size.at(i), local_work_size.at(i));
