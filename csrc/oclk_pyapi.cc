@@ -1,30 +1,16 @@
 //
 // Created by jimmy on 23-7-28.
 //
-#include <iostream>
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <string.h>
-
-#include "runner.h"
-#include "spdlog/logger.h"
+#include "oclk_pyapi.h"
 namespace py = pybind11;
 
-#ifndef OCLK_VERSION_INFO
-#define OCLK_VERSION_INFO 0.0.0
-#endif // OCLK_VERSION_INFO
-#define STRINGIFY(x) #x
-#define MACRO_STRINGIFY(x) STRINGIFY(x)
-
-const std::string module_version = MACRO_STRINGIFY(OCLK_VERSION_INFO);
-
 std::shared_ptr<oclk::CLRunner> runner;
+
 unsigned long Init() {
     int err = oclk::ocl_instance.init();
     if (err != 0) {
         spdlog::critical("init failed , error code: {}", err);
-    }else{
+    } else {
         spdlog::info("init success");
     }
     runner = std::make_shared<oclk::CLRunner>(&oclk::ocl_instance);
@@ -65,14 +51,16 @@ py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
         auto arg_dict    = arg_dicts[i].cast<py::dict>();
         std::string name = arg_dict["name"].cast<std::string>();
         auto v           = arg_dict["value"];
-        spdlog::info(
-            "Parsing arg: [{:>10}] type: {}", name, v.get_type().cast<py::str>().cast<std::string>());
+        spdlog::info("Parsing arg: [{:>10}] type: {}",
+                     name,
+                     v.get_type().cast<py::str>().cast<std::string>());
         if (py::isinstance<py::array>(v)) {
             py::array arr = v.cast<py::array>();
-            spdlog::info("\tarray dtype: {:>10} size: {:8d} data size: {:8d}Bytes",
-                         arr.dtype().cast<py::str>().cast<std::string>(),
-                         arr.size(),
-                         arr.nbytes());
+            spdlog::info(
+                "\tarray dtype: {:>10} size: {:8d} data size: {:8d}Bytes",
+                arr.dtype().cast<py::str>().cast<std::string>(),
+                arr.size(),
+                arr.nbytes());
             add_array_arg(name, arr, args);
         } else if (py::isinstance<py::int_>(v) ||
                    py::isinstance<py::float_>(v)) {
@@ -185,13 +173,4 @@ py::list run_impl(py::kwargs &kwargs) {
         }
     }
     return out_arg_list;
-}
-
-PYBIND11_MODULE(oclk_C, m) {
-    m.doc() =
-        "OCLK(OpenCL Kernel) runner Python api"; // optional module docstring
-    m.def("init", &Init, "");
-    m.def("load_kernel", &LoadKernel, "");
-    m.def("run", &run_impl, "run_impl_float");
-    m.attr("__version__") = module_version;
 }
