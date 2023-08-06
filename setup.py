@@ -97,9 +97,11 @@ setup(
     name='pyoclk',
     version=__version__,
     author='Mingyi Jin',
+    url='https://github.com/jinmingyi1998/opencl_kernels',
     author_email='jinmingyi1998@sina.cn',
-    description='A easy way to run OpenCL kernel files',
+    description='An easy way to run OpenCL kernel files',
     long_description=long_desc,
+    long_description_content_type='text/markdown',
     packages=['oclk', 'oclk.third_party.OpenCL.lib.x86_64'],
     include_package_data=True,
     ext_modules=[CMakeExtension('oclk_C')],
@@ -129,4 +131,5 @@ setup(
         'Topic :: Scientific/Engineering :: Visualization',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    platforms=['manylinux1_x86_64']
 )
