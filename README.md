@@ -84,7 +84,7 @@ runner.run(
     input=[
         {"name": "a", "value": a, },
         {"name": "out", "value": out, },
-        {"name": "int_arg", "value": 1, },
+        {"name": "int_arg", "value": 1, "type": "int"},
         {"name": "float_arg", "value": 12.34}
     ],
     output=['out'],
@@ -137,7 +137,7 @@ print(out[:8])
 
 ```python
 def run(*, kernel_name: str,
-        input: Dict[str, Union[int, float, np.array]],
+        input: List[Dict[str, Union[int, float, np.array]]],
         output: List[str],
         local_work_size: List[int],
         global_work_size: List[int],
