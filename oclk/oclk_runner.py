@@ -21,13 +21,17 @@ def check_init(fn):
 
 class Runner:
     has_initialized = False
-    kernel_list = {}
+    kernel_list: Dict[str, str] = {}
 
     def __new__(cls):
         if not cls.has_initialized:
             F.init()
             cls.has_initialized = True
         return super().__new__(cls)
+
+    @classmethod
+    def get_kernel_list(cls) -> Dict[str, str]:
+        return cls.kernel_list
 
     @check_init
     def load_kernel(
@@ -56,6 +60,14 @@ class Runner:
                     "file": cl_file,
                     "compile_option": compile_option,
                 }
+
+    @check_init
+    def release_kernel(self, kernel_name: str) -> int:
+        err = F.release_kernel(kernel_name)
+        if err == 0:
+            Runner.get_kernel_list().pop(kernel_name)
+        assert err == 0
+        return err
 
     @check_init
     def run(

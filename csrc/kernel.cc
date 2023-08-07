@@ -5,6 +5,7 @@
 #include "kernel.h"
 
 #include <fstream>
+namespace oclk {
 std::string readFile(const std::string &filename) {
     std::ifstream file_stream(filename);
     if (!file_stream.is_open()) {
@@ -16,11 +17,11 @@ std::string readFile(const std::string &filename) {
     buffer << file_stream.rdbuf();
     return buffer.str();
 }
-cl_program oclk::CreateProgram_(const cl_context &ctx,
-                                const cl_device_id &device,
-                                const std::string &filename,
-                                const std::string &compile_options,
-                                const std::string &link_options) {
+cl_program CreateProgram_(const cl_context &ctx,
+                          const cl_device_id &device,
+                          const std::string &filename,
+                          const std::string &compile_options,
+                          const std::string &link_options) {
     spdlog::info("filename: {}\tcompile_options: {}\tlink_options: {}",
                  filename,
                  compile_options,
@@ -76,12 +77,12 @@ cl_program oclk::CreateProgram_(const cl_context &ctx,
     }
     return linked_program;
 }
-cl_kernel oclk::LoadKernel(cl_context context,
-                           cl_device_id deviceId,
-                           const std::string &program_source_file,
-                           const std::string &program_compile_options,
-                           const std::string &program_link_options,
-                           const std::string &kernel_name) {
+cl_kernel LoadKernel(cl_context context,
+                     cl_device_id deviceId,
+                     const std::string &program_source_file,
+                     const std::string &program_compile_options,
+                     const std::string &program_link_options,
+                     const std::string &kernel_name) {
     spdlog::info(
         "Loading kernel: {} from file: {}", kernel_name, program_source_file);
     cl_program program = CreateProgram_(context,
@@ -103,12 +104,12 @@ cl_kernel oclk::LoadKernel(cl_context context,
     return kernel;
 }
 std::vector<cl_kernel>
-oclk::LoadKernel(cl_context context,
-                 cl_device_id deviceId,
-                 const std::string &program_source_file,
-                 const std::string &program_compile_options,
-                 const std::string &program_link_options,
-                 const std::vector<std::string> &kernel_name_list) {
+LoadKernel(cl_context context,
+           cl_device_id deviceId,
+           const std::string &program_source_file,
+           const std::string &program_compile_options,
+           const std::string &program_link_options,
+           const std::vector<std::string> &kernel_name_list) {
     cl_program program = CreateProgram_(context,
                                         deviceId,
                                         program_source_file,
@@ -130,3 +131,12 @@ oclk::LoadKernel(cl_context context,
     }
     return kernel_list;
 }
+
+int ReleaseKernel(cl_kernel kernel) {
+    int err = clReleaseKernel(kernel);
+    if (err != CL_SUCCESS) {
+        spdlog::critical("clReleaseKernel failed, err: {}", err);
+    }
+    return err;
+}
+} // namespace oclk

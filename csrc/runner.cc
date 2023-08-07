@@ -2,6 +2,7 @@
 // Created by jimmy on 23-7-28.
 //
 #include "runner.h"
+
 namespace oclk {
 CLRunner::CLRunner(OCLENV *env)
     : context(env->context)
@@ -14,6 +15,7 @@ void CLRunner::AddKernel(const std::string &kernel_name, cl_kernel kernel) {
     }
     kernel_lists[kernel_name] = kernel;
 }
+
 void CLRunner::RunKernel(const std::string &kernel_name,
                          std::vector<ArgWrapper> &constants,
                          size_t dim,
@@ -65,5 +67,14 @@ void CLRunner::RunKernel(const std::string &kernel_name,
         }
     }
     return;
+}
+
+int CLRunner::RemoveKernel(const std::string &kernel_name) {
+    auto kernel = this->kernel_lists.at(kernel_name);
+    int err     = ReleaseKernel(kernel);
+    if (err == 0) {
+        this->kernel_lists.erase(kernel_name);
+    }
+    return err;
 }
 } // namespace oclk

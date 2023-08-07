@@ -2,6 +2,7 @@
 // Created by jimmy on 23-7-28.
 //
 #include "oclk_pyapi.h"
+
 namespace py = pybind11;
 
 std::shared_ptr<oclk::CLRunner> runner;
@@ -16,6 +17,7 @@ unsigned long Init() {
     runner = std::make_shared<oclk::CLRunner>(&oclk::ocl_instance);
     return err;
 }
+
 unsigned long LoadKernel(std::string &kernel_filename,
                          std::string &kernel_name,
                          std::string &compile_option_string) {
@@ -40,6 +42,7 @@ inline void add_array_arg(std::string &arg_name,
         env->command_queue, mem, (void *)arr.data(), arr.nbytes());
     args.emplace_back(arg_name, mem);
 }
+
 /**
  * parse arg from kwargs dict, meanwhile modify args vector
  * @param arg_dict list of dict
@@ -102,6 +105,7 @@ py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
     }
     return arg_dicts;
 }
+
 /**
  * @param kwargs example input:
  *     {
@@ -197,4 +201,8 @@ py::list run_impl(py::kwargs &kwargs) {
     }
     oclk::release_allocated_gpumem();
     return out_arg_list;
+}
+
+unsigned long ReleaseKernel(std::string &kernel_name) {
+    return runner->RemoveKernel(kernel_name);
 }

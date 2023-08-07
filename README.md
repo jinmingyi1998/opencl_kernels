@@ -134,7 +134,24 @@ print(out[:8])
 ### Python api Usage
 
 #### API
+##### load_kernel
+```python
+def loak_kernel(
+    cl_file: str, kernel_name: str, compile_option: Union[str, List[str]]
+) -> int: ...
+```
+* filename can be absolute or relative path
+* kernel_name is the kernel functions' name
+* compile option can be strings like `-DMY_DEF=1`, **`-D` is necessary**
+##### release_kernel
+```python
+def release_kernel(kernel_name: str) -> int: ...
+```
+unload kernel from context, kernel name cannot be duplicated.
 
+If you want to reload a kernel, you have to release it firstly.
+
+##### run
 ```python
 def run(*, kernel_name: str,
         input: List[Dict[str, Union[int, float, np.array]]],

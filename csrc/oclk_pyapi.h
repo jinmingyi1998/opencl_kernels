@@ -20,9 +20,12 @@
 const std::string module_version = MACRO_STRINGIFY(OCLK_VERSION_INFO);
 
 unsigned long Init();
+
 unsigned long LoadKernel(std::string &kernel_filename,
                          std::string &kernel_name,
                          std::string &compile_option_string);
+
+unsigned long ReleaseKernel(std::string &kernel_name);
 
 inline void add_array_arg(std::string &arg_name,
                           pybind11::array &arr,
@@ -66,9 +69,11 @@ pybind11::list run_impl(pybind11::kwargs &kwargs);
 PYBIND11_MODULE(oclk_C, m) {
     m.doc() =
         "OCLK(OpenCL Kernel) runner Python api"; // optional module docstring
-    m.def("init", &Init, "");
-    m.def("load_kernel", &LoadKernel, "");
-    m.def("run", &run_impl, "run_impl_float");
+    m.def("init", &Init);
+    m.def("load_kernel", &LoadKernel);
+    m.def("release_kernel", &ReleaseKernel);
+    m.def("run", &run_impl);
     m.attr("__version__") = module_version;
 }
+
 #endif // OPENCL_KERNELS_OCLK_PYAPI_H

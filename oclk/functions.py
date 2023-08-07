@@ -25,6 +25,10 @@ def loak_kernel(
     return err
 
 
+def release_kernel(kernel_name: str) -> int:
+    return _C.release_kernel(kernel_name)
+
+
 class TimerArgs:
     def __init__(self, enable: bool, warmup: int, repeat: int, name: str):
         self.enable = enable

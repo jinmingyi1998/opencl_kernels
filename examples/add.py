@@ -105,6 +105,9 @@ def main():
     add()
     add_constant()
     add_batch()
+    r.release_kernel("add")
+    r.release_kernel("add_constant")
+    r.release_kernel("add_batch")
 
 
 if __name__ == "__main__":

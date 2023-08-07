@@ -11,6 +11,7 @@ class Runner:
         kernel_name: Union[str, List[str]],
         compile_option: Optional[Union[str, List[str]]] = None,
     ): ...
+    def release_kernel(self, kernel_name: Union[str, List[str]]) -> int: ...
     def run(
         self,
         *,

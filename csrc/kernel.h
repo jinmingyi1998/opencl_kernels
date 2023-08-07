@@ -30,5 +30,7 @@ LoadKernel(cl_context context,
            const std::string &program_compile_options,
            const std::string &program_link_options,
            const std::vector<std::string> &kernel_name_list);
+
+int ReleaseKernel(cl_kernel kernel);
 } // namespace oclk
 #endif // CLKERNELBENCH_KERNEL_H

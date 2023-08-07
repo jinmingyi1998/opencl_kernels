@@ -18,6 +18,7 @@ public:
                    long *local_work_size,
                    bool wait            = true,
                    TimerArgs timer_args = disabled_timer_arg);
+    int RemoveKernel(const std::string &kernel_name);
 
 private:
     cl_context context;

@@ -113,7 +113,7 @@ setup(
         "Development Status :: 5 - Production/Stable",
         "Environment :: GPU",
         "Operating System :: POSIX :: Linux",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: BSD License",
         "Natural Language :: English",
         "Programming Language :: C++",
         "Programming Language :: Python :: 3 :: Only",
@@ -130,6 +130,9 @@ setup(
         "Topic :: Scientific/Engineering :: Mathematics",
         "Topic :: Scientific/Engineering :: Visualization",
         "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Utilities",
+        "Typing :: Typed",
+        "Intended Audience :: Developers",
     ],
     platforms=["manylinux1_x86_64"],
 )
