@@ -20,18 +20,14 @@ def check_init(fn):
 
 
 class Runner:
-    has_initialized = False
-    kernel_list: Dict[str, str] = {}
+    has_initialized: bool = False
+    kernel_list: Dict[str, Dict[str, str]] = {}
 
     def __new__(cls):
         if not cls.has_initialized:
             F.init()
             cls.has_initialized = True
         return super().__new__(cls)
-
-    @classmethod
-    def get_kernel_list(cls) -> Dict[str, str]:
-        return cls.kernel_list
 
     @check_init
     def load_kernel(
@@ -46,7 +42,7 @@ class Runner:
             compile_option = " ".join(compile_option)
 
         if isinstance(kernel_name, str):
-            kernel_name = [kernel_name]
+            kernel_name: List[str] = [kernel_name]
         for kn in kernel_name:
             if kn in self.kernel_list:
                 import sys
@@ -63,9 +59,12 @@ class Runner:
 
     @check_init
     def release_kernel(self, kernel_name: str) -> int:
+        assert (
+            kernel_name in self.kernel_list
+        ), f"{kernel_name=}, not exists in loaded kernels"
         err = F.release_kernel(kernel_name)
         if err == 0:
-            Runner.get_kernel_list().pop(kernel_name)
+            self.kernel_list.pop(kernel_name)
         assert err == 0
         return err
 
@@ -81,6 +80,7 @@ class Runner:
         wait: bool = True,
         timer: Union[Dict, F.TimerArgs] = F.TimerArgsDisabled,
     ) -> List[np.ndarray]:
+        assert kernel_name in self.kernel_list
         return F.run(
             kernel_name=kernel_name,
             input=input,

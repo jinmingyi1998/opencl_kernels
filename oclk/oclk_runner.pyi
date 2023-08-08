@@ -5,6 +5,9 @@ import numpy as np
 import oclk.functions as F
 
 class Runner:
+    has_initialized: bool
+    kernel_list: Dict[str, Dict[str, str]]
+
     def load_kernel(
         self,
         cl_file: str,
