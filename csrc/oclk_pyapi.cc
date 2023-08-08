@@ -204,5 +204,5 @@ py::list run_impl(py::kwargs &kwargs) {
 }
 
 unsigned long ReleaseKernel(std::string &kernel_name) {
-    return runner->RemoveKernel(kernel_name);
+    return runner->ReleaseKernel(kernel_name);
 }
