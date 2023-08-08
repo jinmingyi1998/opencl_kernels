@@ -53,10 +53,10 @@ GetWorkSize(std::vector<long> global_work_size,
             local_work_size.front() == -1)
             continue;
         if (local_work_size.at(i) == 0) local_work_size.at(i) = 1;
+        local_work_size.at(i) =
+            std::min(local_work_size.at(i), global_work_size.at(i));
         global_work_size.at(i) =
             roundup_value(global_work_size.at(i), local_work_size.at(i));
-        global_work_size.at(i) =
-            std::max(global_work_size.at(i), local_work_size.at(i));
     }
     return std::make_pair(global_work_size, local_work_size);
 }
