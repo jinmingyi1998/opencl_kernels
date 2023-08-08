@@ -2,7 +2,7 @@
 // Created by jimmy on 23-7-28.
 //
 #include "runner.h"
-
+#include "opencl_error_code.h"
 namespace oclk {
 CLRunner::CLRunner(OCLENV *env)
     : context(env->context)
@@ -46,21 +46,30 @@ void CLRunner::RunKernel(const std::string &kernel_name,
                                           nullptr,
                                           nullptr);
         if (_err != CL_SUCCESS) {
-            spdlog::error("clEnqueueNDRangeKernel failed, kernel_name: {}",
-                          kernel_name);
+            spdlog::error(
+                "clEnqueueNDRangeKernel failed, kernel_name: {} err: {} msg:{}",
+                kernel_name,
+                _err,
+                getErrorString(_err));
+            return _err;
         }
+        return _err;
     };
     if (timer_args.isEnable()) {
+        int err;
         for (int i = 0; i < timer_args.getWarmup(); i++) {
-            run_kernel_fn();
+            ASSERT_PRINT((err = run_kernel_fn(), err == 0),
+                         getErrorString(err));
         }
-        TIMER_KERNEL_BLOCK_REPEAT(timer_args.getTimerName(),
-                                  timer_args.getRepeat(),
-                                  command_queue,
-                                  { run_kernel_fn(); });
+        TIMER_KERNEL_BLOCK_REPEAT(
+            timer_args.getTimerName(), timer_args.getRepeat(), command_queue, {
+                ASSERT_PRINT((err = run_kernel_fn(), err == 0),
+                             getErrorString(err));
+            });
         TimeMonitor::ShowTimer(timer_args.getTimerName());
     } else {
-        run_kernel_fn();
+        int err;
+        ASSERT_PRINT((err = run_kernel_fn(), err == 0), getErrorString(err));
         if (wait) {
             clFlush(command_queue);
             clFinish(command_queue);
@@ -69,9 +78,9 @@ void CLRunner::RunKernel(const std::string &kernel_name,
     return;
 }
 
-int CLRunner::RemoveKernel(const std::string &kernel_name) {
+int CLRunner::ReleaseKernel(const std::string &kernel_name) {
     auto kernel = this->kernel_lists.at(kernel_name);
-    int err     = ReleaseKernel(kernel);
+    int err     = oclk::ReleaseKernel(kernel);
     if (err == 0) {
         this->kernel_lists.erase(kernel_name);
     }
