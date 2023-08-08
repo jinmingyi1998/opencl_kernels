@@ -1,11 +1,29 @@
+import sys
 from typing import Dict, List, Union
 
 import numpy as np
 
-import oclk.oclk_C as _C
+try:
+    import oclk.oclk_C as _C
 
-init = _C.init
-load_kernel = _C.load_kernel
+    init = _C.init
+    load_kernel = _C.load_kernel
+except ImportError:
+    import sys
+
+    print("WARN:  there is not C module!", file=sys.stderr)
+
+    # make a dummy module to avoid Exception, useful for sphinx-apidoc
+    class DummyC:
+        def load_kernel(self, *args, **kwargs):
+            ...
+
+        def init(self, *args, **kwargs):
+            ...
+
+    _C = DummyC
+    init = _C.init
+    load_kernel = _C.load_kernel
 
 
 def init() -> int:
