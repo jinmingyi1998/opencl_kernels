@@ -39,11 +39,11 @@ int TimeMonitor::AddData(const std::string &name, const double &data) {
     mMonitorTotalData[name] += data;
     mMonitorTotalDataDetail[name].push_back(data);
     ++mMonitorTotalDataCnt[name];
-    spdlog::info("[{}][CUR: {:4.3f}ms][MOVING AVG: {:4.3f}ms][CNT: {:3d}]",
-                 name,
-                 data,
-                 mMonitorTotalData[name] / mMonitorTotalDataCnt[name],
-                 mMonitorTotalDataCnt[name]);
+    spdlog::debug("[{}][CUR: {:4.3f}ms][MOVING AVG: {:4.3f}ms][CNT: {:3d}]",
+                  name,
+                  data,
+                  mMonitorTotalData[name] / mMonitorTotalDataCnt[name],
+                  mMonitorTotalDataCnt[name]);
     return 0;
 }
 int TimeMonitor::ShowTimer(const std::string &name) {

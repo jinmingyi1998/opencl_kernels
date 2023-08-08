@@ -54,22 +54,22 @@ py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
         auto arg_dict    = arg_dicts[i].cast<py::dict>();
         std::string name = arg_dict["name"].cast<std::string>();
         auto v           = arg_dict["value"];
-        spdlog::info("Parsing arg: [{:>10}] type: {}",
-                     name,
-                     v.get_type().cast<py::str>().cast<std::string>());
+        spdlog::debug("Parsing arg: [{:>10}] type: {}",
+                      name,
+                      v.get_type().cast<py::str>().cast<std::string>());
         if (py::isinstance<py::array>(v)) {
             py::array arr = v.cast<py::array>();
-            spdlog::info(
-                "    array dtype: {:>10} size: {:8d} data size: {:8d}Bytes",
-                arr.dtype().cast<py::str>().cast<std::string>(),
-                arr.size(),
-                arr.nbytes());
+            spdlog::debug("    ndarray [dtype: {:>10}] [size: {:8d}] [data "
+                          "size: {}]",
+                          arr.dtype().cast<py::str>().cast<std::string>(),
+                          arr.size(),
+                          oclk::human_readable_bytesize(arr.nbytes()));
             add_array_arg(name, arr, args);
         } else if (py::isinstance<py::int_>(v) ||
                    py::isinstance<py::float_>(v)) {
             if (arg_dict.contains("type")) {
                 std::string type_str = arg_dict["type"].cast<std::string>();
-                spdlog::info("        type string: {}", type_str);
+                spdlog::debug("        type string: {}", type_str);
                 if (type_str == "float") {
                     float vv = v.cast<float>();
                     args.emplace_back(name, vv);
@@ -89,11 +89,11 @@ py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
                 if (py::isinstance<py::int_>(v)) {
                     long v_int = v.cast<long>();
                     args.emplace_back(name, v_int);
-                    spdlog::info("parse arg int");
+                    spdlog::debug("    constant arg: {}", v_int);
                 } else {
                     float v_float = v.cast<float>();
                     args.emplace_back(name, v_float);
-                    spdlog::info("parse arg float");
+                    spdlog::debug("    constant arg: {}", v_float);
                 }
             }
         } else {
@@ -162,7 +162,7 @@ py::list run_impl(py::kwargs &kwargs) {
             ss << v << " ";
         }
         ss << "}";
-        spdlog::info(ss.str());
+        spdlog::debug(ss.str());
     }();
     auto kernel_name    = kwargs[py::str("kernel_name")].cast<std::string>();
     auto timer_arg_dict = kwargs[py::str("timer")].cast<py::dict>();
@@ -191,8 +191,10 @@ py::list run_impl(py::kwargs &kwargs) {
                 memcpy(&mem, c.bytes.data(), c.bytes.size());
                 py::array arr = (in_arg_list[i].cast<py::dict>())["value"]
                                     .cast<py::array>();
-                spdlog::info(
-                    "read arg [{}] size: {:9d} Bytes", arg_name, arr.nbytes());
+                spdlog::debug("read arg: [{:>10}] [size: {}] [data size: {}]",
+                              arg_name,
+                              arr.size(),
+                              oclk::human_readable_bytesize(arr.nbytes()));
                 oclk::read_data_from_buffer(
                     env->command_queue, mem, arr.mutable_data(), arr.nbytes());
                 break;

@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "spdlog/cfg/env.h"
 #include "spdlog/spdlog.h"
 
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
@@ -19,7 +20,7 @@
     do {                                                                       \
         if (!(cond)) {                                                         \
             spdlog::critical("Assert failed: {}", msg);                        \
-            abort();                                                           \
+            throw std::runtime_error(msg);                                     \
         }                                                                      \
     } while (0)
 
@@ -37,6 +38,18 @@ int release_allocated_gpumem();
 
 inline int binary_round_up(int value, int round_up_value) {
     return (value + round_up_value - 1) & (-round_up_value);
+}
+
+inline std::string human_readable_bytesize(size_t size) {
+    const char *units[] = {"B", "KB", "MB", "GB", "TB"};
+    double size_v       = static_cast<double>(size);
+    int i               = 0;
+    for (; size_v > 1024 && i < 5; i++) {
+        size_v /= 1024.0;
+    }
+    std::stringstream ss;
+    ss << size_v << units[i];
+    return ss.str();
 }
 
 template <typename T> std::string stringify(T val) {
@@ -79,6 +92,7 @@ std::string parse_fields_to_name(std::map<std::string, T> &kv) {
     return name;
 }
 static inline void init_spdlog() {
+    spdlog::cfg::load_env_levels();
     spdlog::set_pattern("[%H:%M:%S %z][%^%l%$][%P-%t] : %v");
 }
 struct OCLENV {

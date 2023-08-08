@@ -22,10 +22,10 @@ cl_program CreateProgram_(const cl_context &ctx,
                           const std::string &filename,
                           const std::string &compile_options,
                           const std::string &link_options) {
-    spdlog::info("filename: {}\tcompile_options: {}\tlink_options: {}",
-                 filename,
-                 compile_options,
-                 link_options);
+    spdlog::debug("filename: {}\tcompile_options: {}\tlink_options: {}",
+                  filename,
+                  compile_options,
+                  link_options);
     auto program_str           = readFile(filename);
     const char *program_source = program_str.c_str();
     if (program_source == nullptr) {
@@ -83,8 +83,6 @@ cl_kernel LoadKernel(cl_context context,
                      const std::string &program_compile_options,
                      const std::string &program_link_options,
                      const std::string &kernel_name) {
-    spdlog::info(
-        "Loading kernel: {} from file: {}", kernel_name, program_source_file);
     cl_program program = CreateProgram_(context,
                                         deviceId,
                                         program_source_file,
@@ -100,7 +98,6 @@ cl_kernel LoadKernel(cl_context context,
         ASSERT_PRINT((err != CL_SUCCESS && kernel != nullptr),
                      "failed to create kernel");
     }
-    spdlog::info("Loaded kernel: {}", kernel_name);
     return kernel;
 }
 std::vector<cl_kernel>
@@ -118,9 +115,6 @@ LoadKernel(cl_context context,
     ASSERT_PRINT(program != nullptr, "program create failed");
     std::vector<cl_kernel> kernel_list;
     for (auto &kernel_name : kernel_name_list) {
-        spdlog::info("Loading kernel: {}, from file {}",
-                     kernel_name,
-                     program_source_file);
         std::string _real_kernel_name =
             kernel_name.substr(0, kernel_name.find('/'));
         int err;
