@@ -78,16 +78,16 @@ inline double time_ms_d() {
     } while (0)
 
 #define TIMER_BLOCK_REPEAT(name, _timer_repeat, _block)                        \
-    do {                                                                       \
+    [&]() {                                                                    \
         TimeMonitor::ScopedCumulator _(name, 1.0 / _timer_repeat);             \
         for (int __timer_repeat_19980313 = 0;                                  \
              __timer_repeat_19980313 < _timer_repeat;                          \
              __timer_repeat_19980313++) {                                      \
             _block                                                             \
         }                                                                      \
-    } while (0)
+    }()
 #define TIMER_KERNEL_BLOCK_REPEAT(name, _timer_repeat, commandQueue, _block)   \
-    do {                                                                       \
+    [&]() {                                                                    \
         TimeMonitor::ScopedCumulator _(name, 1.0 / _timer_repeat);             \
         for (int __timer_repeat_19980313 = 0;                                  \
              __timer_repeat_19980313 < _timer_repeat;                          \
@@ -96,7 +96,7 @@ inline double time_ms_d() {
         }                                                                      \
         clFlush(commandQueue);                                                 \
         clFinish(commandQueue);                                                \
-    } while (0)
+    }()
 
 class TimerArgs {
 private:
