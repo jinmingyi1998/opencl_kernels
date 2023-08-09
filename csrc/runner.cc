@@ -22,7 +22,8 @@ void CLRunner::RunKernel(const std::string &kernel_name,
                          long *global_work_size,
                          long *local_work_size,
                          bool wait,
-                         TimerArgs timer_args) {
+                         TimerArgs timer_args,
+                         CLRunnerReturnWrapper return_wrapper) {
     auto kernel = this->kernel_lists.at(kernel_name);
     int arg_idx = 0;
     for (auto &c : constants) {
@@ -58,6 +59,8 @@ void CLRunner::RunKernel(const std::string &kernel_name,
         }
         return _err;
     };
+    TimerResult timer_result = no_result;
+
     if (timer_args.isEnable()) {
         int err;
         for (int i = 0; i < timer_args.getWarmup(); i++) {
@@ -70,6 +73,8 @@ void CLRunner::RunKernel(const std::string &kernel_name,
                              getErrorString(err));
             });
         TimeMonitor::ShowTimer(timer_args.getTimerName());
+        timer_result =
+            TimeMonitor::GetTimerResultObj(timer_args.getTimerName());
     } else {
         int err;
         ASSERT_PRINT((err = run_kernel_fn(), err == 0), getErrorString(err));
@@ -77,6 +82,9 @@ void CLRunner::RunKernel(const std::string &kernel_name,
             clFlush(command_queue);
             clFinish(command_queue);
         }
+    }
+    if (return_wrapper != nullptr) {
+        return_wrapper->timer_result = timer_result;
     }
     return;
 }

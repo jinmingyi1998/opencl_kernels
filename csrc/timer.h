@@ -14,15 +14,15 @@
 
 #include "common.h"
 namespace oclk {
-
+class TimerResult;
 class TimeMonitor {
 public:
     static int Init(const std::string &name);
     static int AddData(const std::string &name, const double &data);
     static int ShowAll();
     static int ShowTimer(const std::string &name);
+    static TimerResult GetTimerResultObj(const std::string &name);
     static int Clear();
-    int DumpObj(const std::string &name);
 
 public:
     /**
@@ -121,5 +121,58 @@ public:
     void setTimerName(const std::string &TimerName);
 };
 const TimerArgs disabled_timer_arg(false, 0, 1, "timer_dummy");
-} // namespace oclk
+
+class TimerResult {
+public:
+    TimerResult(const std::string &name)
+        : name(name) { }
+    TimerResult(const std::string &name,
+                long cnt,
+                double avg,
+                double stdev,
+                double total)
+        : name(name)
+        , cnt(cnt)
+        , avg(avg)
+        , stdev(stdev)
+        , total(total) { }
+
+    std::string ToString() const {
+        int size_s =
+            std::snprintf(nullptr,
+                          0,
+                          "[Timer %s] [CNT: %ld] [AVG: %.3lfms] [STDEV "
+                          "%.3lfms] [TOTAL %.3lfms]",
+                          name.c_str(),
+                          cnt,
+                          avg,
+                          stdev,
+                          total) +
+            1; // Extra space for '\0'
+        if (size_s <= 0) {
+            throw std::runtime_error("Error during formatting.");
+        }
+        auto size = static_cast<size_t>(size_s);
+        std::unique_ptr<char[]> buf(new char[size]);
+        std::snprintf(buf.get(),
+                      size,
+                      "[Timer %s] [CNT: %ld] [AVG: %.3lfms] [STDEV "
+                      "%.3lfms] [TOTAL %.3lfms]",
+                      name.c_str(),
+                      cnt,
+                      avg,
+                      stdev,
+                      total);
+        return std::string(buf.get(), buf.get() + size - 1);
+    }
+
+public:
+    std::string name;
+    long cnt     = 0;
+    double avg   = 0.0;
+    double stdev = 0.0;
+    double total = 0.0;
+};
+const TimerResult no_result("no result", 0, 0, 0, 0);
+};     // namespace oclk
 #endif // OPENCL_DEMO_TIMER_H

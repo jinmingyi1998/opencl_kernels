@@ -25,7 +25,7 @@ def add():
 
     arr_length = a.size
 
-    r.run(
+    result = r.run(
         kernel_name="add",
         input=[
             {"name": "a", "value": a},
@@ -37,6 +37,7 @@ def add():
         local_work_size=[1],
         global_work_size=[arr_length],
     )
+    print(result.timer_result)  # not set timer, so there is an empty timer_result
 
     c = np.float32(a + b)
     print(np.abs(c - out).max())
@@ -54,7 +55,7 @@ def add_constant():
     out = np.ascontiguousarray(out, dtype=np.float32)
 
     timer = TimerArgs(True, 1, 10, "add_constant")
-    r.run(
+    rtn = r.run(
         kernel_name="add_constant",
         input=wrap_args(a=a, x=x, length=arr_length, out=out),
         output=["out"],
@@ -63,6 +64,7 @@ def add_constant():
         wait=True,
         timer=timer,
     )
+    print(rtn.timer_result)
 
     b = np.float32(a + x)
     print(np.abs(out - b).max())
@@ -79,7 +81,7 @@ def add_batch():
     out = np.ascontiguousarray(out, dtype=np.float32)
     arr_length = a.size
     timer = TimerArgs(True, 10, 100, "add_batch")
-    r.run(
+    result = r.run(
         kernel_name="add_batch",
         input=wrap_args(a=a, b=b, length=arr_length, out=out),
         output=["out"],
@@ -88,6 +90,7 @@ def add_batch():
         wait=True,
         timer=timer,
     )
+    print(result.timer_result)
 
     a = np.float32(a)
     b = np.float32(b)

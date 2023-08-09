@@ -4,6 +4,15 @@ import numpy as np
 
 import oclk.functions as F
 
+class TimerArgs:
+    enable: bool
+    warmup: int
+    repeat: int
+    name: str
+
+    def __init__(self, enable: bool, warmup: int, repeat: int, name: str): ...
+    def __dict__(self): ...
+
 class Runner:
     has_initialized: bool
     kernel_list: Dict[str, Dict[str, str]]

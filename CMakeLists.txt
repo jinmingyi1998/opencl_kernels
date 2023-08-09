@@ -13,6 +13,7 @@ link_directories(oclk/third_party/OpenCL/lib/${CMAKE_SYSTEM_PROCESSOR})
 
 include_directories(include)
 
+# set Python_ROOT_DIR to specify the python
 find_package(
     Python 3.6
     COMPONENTS Interpreter Development.Module

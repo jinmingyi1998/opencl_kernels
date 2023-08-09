@@ -7,6 +7,15 @@
 #include "kernel.h"
 #include "timer.h"
 namespace oclk {
+/**
+ * Put anything runner returned in this class
+ */
+class CLRunnerReturnWrapper_ {
+public:
+    TimerResult timer_result = no_result;
+};
+typedef CLRunnerReturnWrapper_ *CLRunnerReturnWrapper;
+
 class CLRunner {
 public:
     CLRunner(OCLENV *env);
@@ -16,8 +25,9 @@ public:
                    size_t dim,
                    long *global_work_size,
                    long *local_work_size,
-                   bool wait            = true,
-                   TimerArgs timer_args = disabled_timer_arg);
+                   bool wait                            = true,
+                   TimerArgs timer_args                 = disabled_timer_arg,
+                   CLRunnerReturnWrapper return_wrapper = nullptr);
     int ReleaseKernel(const std::string &kernel_name);
 
 private:

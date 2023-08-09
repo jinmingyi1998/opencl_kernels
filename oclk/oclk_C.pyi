@@ -15,4 +15,15 @@ def run(
     global_work_size: List[int],
     wait: bool,
     timer: Dict
-) -> List[np.ndarray]: ...
+) -> RunnerReturn: ...
+
+class TimerResult:
+    name: str
+    cnt: str
+    avg: str
+    stdev: str
+    total: str
+
+class RunnerReturn:
+    timer_result: TimerResult
+    results: List[np.ndarray]

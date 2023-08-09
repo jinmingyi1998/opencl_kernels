@@ -11,14 +11,15 @@ try:
 except ImportError:
     import sys
 
-    print("WARN:  there is not C module!", file=sys.stderr)
-
     # make a dummy module to avoid Exception, useful for sphinx-apidoc
     class DummyC:
         def load_kernel(self, *args, **kwargs):
             ...
 
         def init(self, *args, **kwargs):
+            ...
+
+        class RunnerReturn:
             ...
 
     _C = DummyC
@@ -47,25 +48,6 @@ def release_kernel(kernel_name: str) -> int:
     return _C.release_kernel(kernel_name)
 
 
-class TimerArgs:
-    def __init__(self, enable: bool, warmup: int, repeat: int, name: str):
-        self.enable = enable
-        self.warmup = warmup
-        self.repeat = repeat
-        self.name = name
-
-    def __dict__(self):
-        return {
-            "enable": self.enable,
-            "warmup": self.warmup,
-            "repeat": self.repeat,
-            "name": self.name,
-        }
-
-
-TimerArgsDisabled = TimerArgs(False, 0, 0, "no-name")
-
-
 def run(
     *,
     kernel_name: str,
@@ -74,11 +56,12 @@ def run(
     local_work_size: List[int],
     global_work_size: List[int],
     wait: bool = True,
-    timer: Union[Dict, TimerArgs] = TimerArgsDisabled
-) -> List[np.ndarray]:
-    timer_dict = timer
-    if isinstance(timer, TimerArgs):
-        timer_dict = timer.__dict__()
+    timer: Dict = None,
+) -> _C.RunnerReturn:
+    if timer is None:
+        timer_dict = {}
+    else:
+        timer_dict = timer
     return _C.run(
         kernel_name=kernel_name,
         input=input,

@@ -129,7 +129,7 @@ py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
  *     }
  * @return
  */
-py::list run_impl(py::kwargs &kwargs) {
+RunnerReturn run_impl(py::kwargs &kwargs) {
     oclk::OCLENV *env = &oclk::ocl_instance;
     std::vector<oclk::ArgWrapper> kernel_args;
     parse_args(kwargs["input"].cast<py::list>(), kernel_args);
@@ -171,17 +171,19 @@ py::list run_impl(py::kwargs &kwargs) {
         timer_arg_dict[py::str("warmup")].cast<unsigned long>(),
         timer_arg_dict[py::str("repeat")].cast<unsigned long>(),
         timer_arg_dict[py::str("name")].cast<std::string>());
+    auto runner_return = std::make_unique<oclk::CLRunnerReturnWrapper_>();
     runner->RunKernel(kernel_name,
                       kernel_args,
                       ws.first.size(),
                       ws.first.data(),
                       ws.second.data(),
                       kwargs[py::str("wait")].cast<bool>(),
-                      timer_args);
+                      timer_args,
+                      runner_return.get());
 
     auto out_arg_list = kwargs[py::str("output")].cast<py::list>();
     auto in_arg_list  = kwargs["input"].cast<py::list>();
-
+    py::list result_arrays;
     for (auto &s : out_arg_list) {
         auto arg_name = s.cast<std::string>();
         for (int i = 0; i < kernel_args.size(); i++) {
@@ -197,12 +199,16 @@ py::list run_impl(py::kwargs &kwargs) {
                               oclk::human_readable_bytesize(arr.nbytes()));
                 oclk::read_data_from_buffer(
                     env->command_queue, mem, arr.mutable_data(), arr.nbytes());
+                result_arrays.append(arr);
                 break;
             }
         }
     }
+    RunnerReturn result;
+    result.timer_result = runner_return->timer_result;
+    result.results      = result_arrays;
     oclk::release_allocated_gpumem();
-    return out_arg_list;
+    return result;
 }
 
 unsigned long ReleaseKernel(std::string &kernel_name) {

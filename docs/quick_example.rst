@@ -28,9 +28,9 @@ Python Code in OOP Style
     import oclk
 
     a = np.random.rand(100, 100).reshape([10, -1])
-    a = np.float32(a)
+    a = np.ascontiguousarray(a, np.float32)
     out = np.zeros(a.shape)
-    out = np.float32(out)
+    out = np.ascontiguousarray(out, np.float32)
 
     runner = oclk.Runner()
     runner.load_kernel("add.cl", "add", "")
@@ -69,10 +69,10 @@ or just call with Functions
     import oclk
 
     a = np.random.rand(100, 100).reshape([10, -1])
-    a = np.float32(a)
+    a = np.ascontiguousarray(a, np.float32)
 
     out = np.zeros(a.shape)
-    out = np.float32(out)
+    out = np.ascontiguousarray(out, np.float32)
     oclk.init()
     oclk.load_kernel("add.cl", "add", "")
     r = oclk.run(

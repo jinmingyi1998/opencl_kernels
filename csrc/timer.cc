@@ -54,14 +54,14 @@ int TimeMonitor::ShowTimer(const std::string &name) {
         return 1;
     }
 
-    spdlog::info("[Timer {}] [CNT: {}] [AVG: {:4.3f}ms] [STDEV {:4.3f}ms] "
-                 "[TOTAL {:4.3f}ms]",
-                 iter->first,
-                 mMonitorTotalDataCnt[iter->first],
-                 mMonitorTotalData[iter->first] /
-                     mMonitorTotalDataCnt[iter->first],
-                 calc_stdev(mMonitorTotalDataDetail[iter->first]),
-                 mMonitorTotalData[iter->first]);
+    spdlog::debug("[Timer {}] [CNT: {}] [AVG: {:4.3f}ms] [STDEV {:4.3f}ms] "
+                  "[TOTAL {:4.3f}ms]",
+                  iter->first,
+                  mMonitorTotalDataCnt[iter->first],
+                  mMonitorTotalData[iter->first] /
+                      mMonitorTotalDataCnt[iter->first],
+                  calc_stdev(mMonitorTotalDataDetail[iter->first]),
+                  mMonitorTotalData[iter->first]);
     return 0;
 }
 
@@ -77,7 +77,20 @@ int TimeMonitor::ShowTimer(const std::string &name) {
  * @param name
  * @return
  */
-int TimeMonitor::DumpObj(const std::string &name) { return 0; }
+TimerResult TimeMonitor::GetTimerResultObj(const std::string &name) {
+    const std::lock_guard<std::mutex> sLock(mMutex);
+    auto iter = mMonitorTotalData.find(name);
+    if (iter == mMonitorTotalData.end()) {
+        spdlog::error("Timer [{}] not found!", name);
+        return no_result;
+    }
+    return TimerResult(name,
+                       mMonitorTotalDataCnt[iter->first],
+                       mMonitorTotalData[iter->first] /
+                           mMonitorTotalDataCnt[iter->first],
+                       calc_stdev(mMonitorTotalDataDetail[iter->first]),
+                       mMonitorTotalData[iter->first]);
+}
 int TimeMonitor::ShowAll() {
     const std::lock_guard<std::mutex> sLock(mMutex);
     for (auto iter = mMonitorTotalData.begin(); iter != mMonitorTotalData.end();

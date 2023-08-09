@@ -5,6 +5,46 @@ import numpy as np
 
 import oclk.functions as F
 
+try:
+    from oclk.oclk_C import TimerResult, RunnerReturn
+except ImportError:
+    # fake class in case of building api docs
+    class TimerResult:
+        """
+        Time Results of Runner.run()
+
+        :var name:   The name of the Global Timer
+        :var cnt:    How many times the timer called
+        :var avg:    Average time among all calls
+        :var stdev:  Standard deviation
+        :var total:  Total time accumulated
+        """
+
+        name: str
+        cnt: int
+        avg: float
+        stdev: float
+        total: float
+
+        def __init__(self):
+            raise RuntimeError("you SHOULD NOT use this fake class")
+
+    class RunnerReturn:
+        """
+        including timer results and output array args
+
+        :var timer_result: a :class:`TimerResult`
+        :type timer_result:  TimerResult
+        :var results: list of return values
+        :type results: List[np.ndarray]
+        """
+
+        timer_result: TimerResult
+        results: List[np.ndarray]
+
+        def __init__(self):
+            raise RuntimeError("you SHOULD NOT use this fake class")
+
 
 def check_init(fn):
     @wraps(fn)
@@ -17,6 +57,38 @@ def check_init(fn):
         return fn(self, *args, **kwargs)
 
     return wrapper
+
+
+class TimerArgs:
+    """
+    Set up the Timer
+
+    :var enable: whether to use timer
+    :type enable: bool
+    :var warmup: warm up loop before timing
+    :type warmup: int
+    :var repeat: repeat :code:`n` times and time it, the result will be ** AVERAGE = total_time / x **
+    :type repeat: int
+    :var name:   timer name
+    :type name: str
+    """
+
+    def __init__(self, enable: bool, warmup: int, repeat: int, name: str):
+        self.enable = enable
+        self.warmup = warmup
+        self.repeat = repeat
+        self.name = name
+
+    def __dict__(self):
+        return {
+            "enable": self.enable,
+            "warmup": self.warmup,
+            "repeat": self.repeat,
+            "name": self.name,
+        }
+
+
+TimerArgsDisabled = TimerArgs(False, 0, 0, "no_name")
 
 
 class Runner:
@@ -92,9 +164,9 @@ class Runner:
         output: List[str],
         local_work_size: List[int],
         global_work_size: List[int],
-        wait: bool = True,
-        timer: Union[Dict, F.TimerArgs] = F.TimerArgsDisabled,
-    ) -> List[np.ndarray]:
+        wait: Optional[bool] = True,
+        timer: Optional[Union[Dict, TimerArgs]] = TimerArgsDisabled,
+    ) -> RunnerReturn:
         """
         run the kernel
 
@@ -111,16 +183,18 @@ class Runner:
                         * float
                         * double
         :param output:              List of names to specify which array will be get back from GPU buffer
-        :param local_work_size:  list of integer, specified work sizes. **local_work_size can be set to `[-1]`,
+        :param local_work_size:     list of integer, specified work sizes. **local_work_size can be set to `[-1]`,
                                     then will pass `nullptr` to `clEnqueueNDRangeKernel`**
+        :type local_work_size: List[int]
         :param global_work_size:
+        :type global_work_size: List[int]
         :param wait:                Optional, default true, wait for GPU
-        :param timer:
-            Optional, arguments to set up a timer for benchmark kernels
-              * warmup: recycle times before timing
-              * repeat: repeat multiple times and get ***AVERAGE TIME*** of multiple times, the result is `elapsed time / repeat`
-              * name: name of a global timer
-        :return:
+        :type wait: Optional[bool]
+        :param timer:               Optional, arguments to set up a timer for benchmark kernels
+        :type timer: Optional[Union[Dict, TimerArgs]]
+
+        :return: time info and output arrays
+        :rtype: TimerResult
         """
         assert kernel_name in self.kernel_list
         return F.run(

@@ -66,9 +66,9 @@ import numpy as np
 import oclk
 
 a = np.random.rand(100, 100).reshape([10, -1])
-a = np.float32(a)
+a = np.ascontiguousarray(a, np.float32)
 out = np.zeros(a.shape)
-out = np.float32(out)
+out = np.ascontiguousarray(out, np.float32)
 
 runner = oclk.Runner()
 runner.load_kernel("add.cl", "add", "")
@@ -106,10 +106,10 @@ import numpy as np
 import oclk
 
 a = np.random.rand(100, 100).reshape([10, -1])
-a = np.float32(a)
+a = np.ascontiguousarray(a,np.float32)
 
-out = np.zeros(a.shape)
-out = np.float32(out)
+out = np.zeros_like(a)
+out = np.ascontiguousarray(out,np.float32)
 oclk.init()
 oclk.load_kernel("add.cl", "add", "")
 r = oclk.run(
@@ -134,64 +134,22 @@ print(out[:8])
 ### Python api Usage
 
 #### API
-##### load_kernel
-```python
-def loak_kernel(
-    cl_file: str, kernel_name: str, compile_option: Union[str, List[str]]
-) -> int: ...
-```
-* filename can be absolute or relative path
-* kernel_name is the kernel functions' name
-* compile option can be strings like `-DMY_DEF=1`, **`-D` is necessary**
-##### release_kernel
-```python
-def release_kernel(kernel_name: str) -> int: ...
-```
-unload kernel from context, kernel name cannot be duplicated.
 
-If you want to reload a kernel, you have to release it firstly.
-
-##### run
-```python
-def run(*, kernel_name: str,
-        input: List[Dict[str, Union[int, float, np.array]]],
-        output: List[str],
-        local_work_size: List[int],
-        global_work_size: List[int],
-        wait: bool = True,
-        timer: Union[Dict, TimerArgs] = TimerArgsDisabled) -> List[np.ndarray]: ...
-```
-
-* input: Dictionary to set input args, in the same order as kernel function
-    * **args from np.array should be contiguous array**
-    * constant args:
-        * python type: float -> c type: float
-        * python type: int -> c type: long
-        * or specify c type with field "type", support types:
-            * [unsigned] int
-            * [unsigned] long
-            * float
-            * double
-* output: List of names to specify which array will be get back from GPU buffer
-* local_work_size/global_work_work: list of integer, specified work sizes. **local_work_size can be set to `[-1]`, then
-  will pass `nullptr` to `clEnqueueNDRangeKernel`**
-* wait: Optional, default true, wait for GPU
-* timer: Optional, arguments to set up a timer for benchmark kernels
-  * warmup: recycle times before timing
-  * repeat: repeat multiple times and get ***AVERAGE TIME*** of multiple times, the result is `elapsed time / repeat`
-  * name: name of a global timer
+[API Reference](https://opencl-kernel-python-wrapper.readthedocs.io/en/latest/src/oclk.html#module-oclk.oclk_runner)
 
 #### example
 
 ```python
+import numpy as np
+
 a = np.zeros([16, 16, 16], dtype=np.float32)
 b = np.zeros([16, 16, 16], dtype=np.float32)
 c = np.zeros([16, 16, 16], dtype=np.float32)
-timer = TimerArgs(enable=True,
-                  warmup=10,
-                  repeat=100,
-                  name='timer_name'
-                  )
+
+a = np.ascontiguousarray(a,dtype=np.float32)
+b = np.ascontiguousarray(b,dtype=np.float32)
+c = np.ascontiguousarray(c,dtype=np.float32)
+
 run(kernel_name='add',
     input=[
         {"name": "a", "value": a, },
@@ -202,7 +160,6 @@ run(kernel_name='add',
     ],
     output=['c'],
     local_work_size=[1, 1, 1],
-    global_work_size=a.shape,
-    timer=timer
+    global_work_size=a.shape
     )
 ```

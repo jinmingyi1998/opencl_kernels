@@ -12,12 +12,24 @@
 #include "runner.h"
 #include "spdlog/logger.h"
 
+namespace py = pybind11;
+
 #ifndef OCLK_VERSION_INFO
 #define OCLK_VERSION_INFO 0.0.0
 #endif // OCLK_VERSION_INFO
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
+
 const std::string module_version = MACRO_STRINGIFY(OCLK_VERSION_INFO);
+
+class RunnerReturn {
+public:
+    RunnerReturn() = default;
+
+public:
+    oclk::TimerResult timer_result = oclk::no_result;
+    py::list results;
+};
 
 unsigned long Init();
 
@@ -28,18 +40,16 @@ unsigned long LoadKernel(std::string &kernel_filename,
 unsigned long ReleaseKernel(std::string &kernel_name);
 
 inline void add_array_arg(std::string &arg_name,
-                          pybind11::array &arr,
+                          py::array &arr,
                           std::vector<oclk::ArgWrapper> &constants);
 
-pybind11::list parse_args(pybind11::list arg_dicts,
-                          std::vector<oclk::ArgWrapper> &args);
+py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args);
 
 inline void add_array_arg(std::string &arg_name,
-                          pybind11::array &arr,
+                          py::array &arr,
                           std::vector<oclk::ArgWrapper> &constants);
 
-pybind11::list parse_args(pybind11::list arg_dicts,
-                          std::vector<oclk::ArgWrapper> &args);
+py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args);
 
 /**
  * @param kwargs example input:
@@ -64,7 +74,7 @@ pybind11::list parse_args(pybind11::list arg_dicts,
  *     }
  * @return
  */
-pybind11::list run_impl(pybind11::kwargs &kwargs);
+RunnerReturn run_impl(py::kwargs &kwargs);
 
 PYBIND11_MODULE(oclk_C, m) {
     m.doc() =
@@ -74,6 +84,21 @@ PYBIND11_MODULE(oclk_C, m) {
     m.def("release_kernel", &ReleaseKernel);
     m.def("run", &run_impl);
     m.attr("__version__") = module_version;
+
+    py::class_<oclk::TimerResult>(m, "TimerResult")
+        .def(py::init<const std::string &>())
+        .def(py::init<const std::string &, long, double, double, double>())
+        .def("__str__", &oclk::TimerResult::ToString)
+        .def_readwrite("name", &oclk::TimerResult::name)
+        .def_readwrite("cnt", &oclk::TimerResult::cnt)
+        .def_readwrite("avg", &oclk::TimerResult::avg)
+        .def_readwrite("stdev", &oclk::TimerResult::stdev)
+        .def_readwrite("total", &oclk::TimerResult::total);
+
+    py::class_<RunnerReturn>(m, "RunnerReturn")
+        .def(py::init<>())
+        .def_readwrite("timer_result", &RunnerReturn::timer_result)
+        .def_readwrite("results", &RunnerReturn::results);
 }
 
 #endif // OPENCL_KERNELS_OCLK_PYAPI_H
