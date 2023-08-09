@@ -29,7 +29,10 @@ void CLRunner::RunKernel(const std::string &kernel_name,
         int _err =
             clSetKernelArg(kernel, arg_idx++, c.bytes.size(), c.bytes.data());
         if (_err != CL_SUCCESS) {
-            spdlog::error("set arg {} failed, err: {}", arg_idx, _err);
+            spdlog::error("set arg {} failed, err: {} {}",
+                          arg_idx,
+                          _err,
+                          getErrorString(_err));
         }
     }
     if (local_work_size[0] == -1) {

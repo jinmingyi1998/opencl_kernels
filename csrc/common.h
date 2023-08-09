@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#include "opencl_error_code.h"
+
 #include "spdlog/cfg/env.h"
 #include "spdlog/spdlog.h"
 
@@ -30,6 +32,15 @@
             spdlog::critical("rtn code: {} message: {}", (signed int)e, msg);  \
     } while (0)
 
+#define CL_CHECK_RTN(e, msg)                                                   \
+    do {                                                                       \
+        if (e != CL_SUCCESS)                                                   \
+            spdlog::critical("rtn code: {} {} message: {}",                    \
+                             (signed int)e,                                    \
+                             getErrorString(e),                                \
+                             msg);                                             \
+    } while (0)
+
 namespace oclk {
 
 static std::vector<cl_mem> allocated_gpumem;
@@ -37,6 +48,7 @@ static std::vector<cl_mem> allocated_gpumem;
 int release_allocated_gpumem();
 
 inline int binary_round_up(int value, int round_up_value) {
+
     return (value + round_up_value - 1) & (-round_up_value);
 }
 
@@ -105,14 +117,14 @@ struct OCLENV {
     int init() {
         init_spdlog();
         cl_int err = clGetPlatformIDs(1, &platform_id, &numPlatforms);
-        CHECK_RTN(err, "clGetPlatformIDs failed");
+        CL_CHECK_RTN(err, "clGetPlatformIDs failed");
         err = clGetDeviceIDs(
             platform_id, CL_DEVICE_TYPE_GPU, 0, nullptr, &num_device);
-        CHECK_RTN(err, "Error getting device number");
+        CL_CHECK_RTN(err, "Error getting device number");
         ASSERT_PRINT(num_device > 0, "No devices found");
         err = clGetDeviceIDs(
             platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &num_device);
-        CHECK_RTN(err, "Error getting device");
+        CL_CHECK_RTN(err, "Error getting device");
         char deviceName[128];
         char deviceVersion[128];
         err = clGetDeviceInfo(
@@ -122,14 +134,14 @@ struct OCLENV {
                                sizeof(deviceVersion),
                                deviceVersion,
                                NULL);
-        CHECK_RTN(err, "Error getting device info");
+        CL_CHECK_RTN(err, "Error getting device info");
         spdlog::info("Loaded device {} version {}", deviceName, deviceVersion);
         context =
             clCreateContext(nullptr, 1, &device_id, nullptr, nullptr, &err);
-        CHECK_RTN(err, "failed to create context");
+        CL_CHECK_RTN(err, "failed to create context");
         command_queue = clCreateCommandQueueWithProperties(
             context, device_id, nullptr, &err);
-        CHECK_RTN(err, "clCreateCommandQueueWithProperties failed");
+        CL_CHECK_RTN(err, "clCreateCommandQueueWithProperties failed");
         return 0;
     }
 };
@@ -143,7 +155,7 @@ cl_mem CreateImage2D(cl_context ctx,
 struct ArgWrapper {
     std::string name = "";
     std::vector<char> bytes{};
-    template <typename T> ArgWrapper(const std::string &name, T &value) {
+    template <typename T> ArgWrapper(const std::string &name, T value) {
         this->name = name;
         bytes.resize(sizeof(T));
         memcpy((void *)bytes.data(), (void *)(&value), sizeof(T));
@@ -166,11 +178,11 @@ inline void read_data_from_buffer(cl_command_queue commandQueue,
     // read from buffer, write to ptr, size in bytes
     cl_int err = clEnqueueReadBuffer(
         commandQueue, buf, true, 0, size, ptr, 0, nullptr, nullptr);
-    CHECK_RTN(err, "clEnqueueReadBuffer failed");
+    CL_CHECK_RTN(err, "clEnqueueReadBuffer failed");
 
     clFlush(commandQueue);
     err = clFinish(commandQueue);
-    CHECK_RTN(err, "clFinish failed");
+    CL_CHECK_RTN(err, "clFinish failed");
 }
 template <typename T>
 inline void read_buffer_to_vector(cl_command_queue commandQueue,
@@ -185,7 +197,7 @@ inline void write_data_to_buffer(cl_command_queue commandQueue,
                                  size_t size) {
     cl_int err = clEnqueueWriteBuffer(
         commandQueue, buf, true, 0, size, ptr, 0, nullptr, nullptr);
-    CHECK_RTN(err, "write buffer failed");
+    CL_CHECK_RTN(err, "write buffer failed");
 }
 template <typename T>
 inline void write_vector_to_buffer(cl_command_queue commandQueue,
@@ -214,14 +226,14 @@ inline void write_vector_to_image(cl_command_queue commandQueue,
                                      0,
                                      nullptr,
                                      nullptr);
-    CHECK_RTN(err, "write image failed");
+    CL_CHECK_RTN(err, "write image failed");
 }
 inline void
 clear_buffer(cl_command_queue commandQueue, cl_mem buf, size_t buffer_size) {
     cl_uint fill_zero = 0;
     cl_int err        = clEnqueueFillBuffer(
         commandQueue, buf, &fill_zero, 1, 0, buffer_size, 0, nullptr, nullptr);
-    CHECK_RTN(err, "fill buffer failed");
+    CL_CHECK_RTN(err, "fill buffer failed");
 }
 
 } // namespace oclk

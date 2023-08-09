@@ -3,7 +3,7 @@
 //
 #ifndef OCLK_PYTHON_OPENCL_ERROR_CODE_H
 #define OCLK_PYTHON_OPENCL_ERROR_CODE_H
-const char *getErrorString(int error) {
+static const char *getErrorString(int error) {
     switch (error) {
         // run-time and JIT compiler errors
         case 0:

@@ -3,13 +3,13 @@
 //
 
 #include "kernel.h"
-
+#include "opencl_error_code.h"
 #include <fstream>
 namespace oclk {
 std::string readFile(const std::string &filename) {
     std::ifstream file_stream(filename);
     if (!file_stream.is_open()) {
-        spdlog::error(" Error: Failed to open program file! {}", filename);
+        spdlog::critical(" Error: Failed to open program file! {}", filename);
         return "";
     }
 
@@ -36,9 +36,10 @@ cl_program CreateProgram_(const cl_context &ctx,
     cl_program program = clCreateProgramWithSource(
         ctx, 1, (const char **)&program_source, nullptr, &err);
 
-    CHECK_RTN(err, "clCreateProgram failed");
+    CL_CHECK_RTN(err, "clCreateProgram failed");
     if (program == nullptr) {
         spdlog::critical("clCreateProgram failed, program is NULL");
+        return nullptr;
     }
     err = clCompileProgram(program,
                            1,
@@ -50,7 +51,8 @@ cl_program CreateProgram_(const cl_context &ctx,
                            nullptr,
                            nullptr);
     if (err != CL_SUCCESS) {
-        spdlog::critical("clCompileProgram failed");
+        spdlog::critical(
+            "clCompileProgram failed! err: {} {}", err, getErrorString(err));
         static const size_t LOG_SIZE = 2048;
         char log[LOG_SIZE];
         log[0] = 0;
@@ -72,7 +74,7 @@ cl_program CreateProgram_(const cl_context &ctx,
                                               nullptr,
                                               &err);
     if (err != CL_SUCCESS) {
-        CHECK_RTN(err, "Link Program failed");
+        CL_CHECK_RTN(err, "Link Program failed");
         ASSERT_PRINT(false, "Link Program failed");
     }
     return linked_program;
@@ -94,7 +96,7 @@ cl_kernel LoadKernel(cl_context context,
     int err;
     cl_kernel kernel = clCreateKernel(program, _real_kernel_name.c_str(), &err);
     if (err != CL_SUCCESS || kernel == nullptr) {
-        spdlog::error("error {}", err);
+        spdlog::error("error {} {}", err, getErrorString(err));
         ASSERT_PRINT((err != CL_SUCCESS && kernel != nullptr),
                      "failed to create kernel");
     }
