@@ -4,13 +4,11 @@
 all: build_wheel build_doc
 
 build_wheel:
-	/opt/python/cp36-cp36m/bin/python3  setup.py build bdist_wheel --plat-name=manylinux_2_28_x86_64
-	/opt/python/cp37-cp37m/bin/python3  setup.py build bdist_wheel --plat-name=manylinux_2_28_x86_64
-	/opt/python/cp38-cp38/bin/python3   setup.py build bdist_wheel --plat-name=manylinux_2_28_x86_64
-	/opt/python/cp39-cp39/bin/python3   setup.py build bdist_wheel --plat-name=manylinux_2_28_x86_64
-	/opt/python/cp310-cp310/bin/python3 setup.py build bdist_wheel --plat-name=manylinux_2_28_x86_64
-	/opt/python/cp311-cp311/bin/python3 setup.py build bdist_wheel --plat-name=manylinux_2_28_x86_64
-	/opt/python/cp312-cp312/bin/python3 setup.py build bdist_wheel --plat-name=manylinux_2_28_x86_64
+	rm -rf build/
+	for PY in `ls /opt/python | grep cp` ;                                                           \
+	do                                                                                               \
+		/opt/python/$${PY}/bin/python3 setup.py build bdist_wheel --plat-name=$${AUDITWHEEL_PLAT} ;  \
+	done
 
 build_doc:
 	cd docs; \
