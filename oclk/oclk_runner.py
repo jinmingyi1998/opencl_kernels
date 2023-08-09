@@ -197,6 +197,11 @@ class Runner:
         :rtype: TimerResult
         """
         assert kernel_name in self.kernel_list
+        timer_dict:Dict = {}
+        if isinstance(timer,TimerArgs):
+            timer_dict = timer.__dict__()
+        else:
+            timer_dict = timer
         return F.run(
             kernel_name=kernel_name,
             input=input,
@@ -204,5 +209,5 @@ class Runner:
             local_work_size=local_work_size,
             global_work_size=global_work_size,
             wait=wait,
-            timer=timer,
+            timer=timer_dict,
         )
