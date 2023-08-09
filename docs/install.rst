@@ -9,7 +9,7 @@ Requirements
 * cmake(if compile from source)
 
 Install from wheel
------------------------------------------------------------------
+=================================================================
 
 .. code-block:: shell
 
@@ -18,7 +18,7 @@ Install from wheel
 or download wheel from `release <https://github.com/jinmingyi1998/opencl_kernels/releases>`_ and install
 
 Compile from source
-----------------------------------------------------------------
+=================================================================
 C
 1. Clone this repo
 

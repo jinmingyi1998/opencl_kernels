@@ -92,3 +92,5 @@ or just call with Functions
     out = out.reshape([-1])
     print(a[:8])
     print(out[:8])
+
+see more examples on `github <https://github.com/jinmingyi1998/opencl_kernels/tree/master/examples>`_
