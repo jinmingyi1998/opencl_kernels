@@ -4,3 +4,4 @@ furo==2023.7.26
 numpy
 pydantic
 typer
+pyyaml
