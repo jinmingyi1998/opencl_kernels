@@ -67,6 +67,8 @@ void CLRunner::RunKernel(const std::string &kernel_name,
             ASSERT_PRINT((err = run_kernel_fn(), err == 0),
                          getErrorString(err));
         }
+        clFlush(command_queue);
+        clFinish(command_queue);
         TIMER_KERNEL_BLOCK_REPEAT(
             timer_args.getTimerName(), timer_args.getRepeat(), command_queue, {
                 ASSERT_PRINT((err = run_kernel_fn(), err == 0),
