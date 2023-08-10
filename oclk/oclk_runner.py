@@ -67,7 +67,7 @@ class TimerArgs:
     :type enable: bool
     :var warmup: warm up loop before timing
     :type warmup: int
-    :var repeat: repeat :code:`n` times and time it, the result will be ** AVERAGE = total_time / x **
+    :var repeat: repeat :math:`n` times and time it, the result will be :math:`result = total / n`
     :type repeat: int
     :var name:   timer name
     :type name: str
@@ -113,7 +113,7 @@ class Runner:
 
         :param cl_file:         filename can be absolute or relative path
         :param kernel_name:     kernel_name is the kernel functions' name
-        :param compile_option:  compile option can be strings like `-DMY_DEF=1`, **`-D` is necessary**
+        :param compile_option:  compile option can be strings like "-DMY_DEF=1", **"-D" is necessary**
         """
         if compile_option is None:
             compile_option = ""
@@ -171,6 +171,7 @@ class Runner:
         run the kernel
 
         :param kernel_name:     the name of the kernel
+        :type kernel_name: str
         :param input:
             Dictionary to set input args, in the same order as kernel function
                 * **args from np.array should be contiguous array**
@@ -182,12 +183,16 @@ class Runner:
                         * [unsigned] long
                         * float
                         * double
+        :type input: List[Dict[str, Union[int, float, np.array]]]
         :param output:              List of names to specify which array will be get back from GPU buffer
-        :param local_work_size:     list of integer, specified work sizes. **local_work_size can be set to `[-1]`,
-                                    then will pass `nullptr` to `clEnqueueNDRangeKernel`**
-        :type local_work_size: List[int]
-        :param global_work_size:
+        :type output: List[str]
+        :param global_work_size:    list of integer, specified global work size
         :type global_work_size: List[int]
+        :param local_work_size:     list of integer, specified work sizes. same length as :code:`global_work_size`.
+                                    **Note:** :code:`local_work_size` can be set to :code:`[-1,-1]` (same
+                                    length as :code:`global_work_size` ), then will pass :code:`nullptr`
+                                    to :code:`clEnqueueNDRangeKernel`
+        :type local_work_size: List[int]
         :param wait:                Optional, default true, wait for GPU
         :type wait: Optional[bool]
         :param timer:               Optional, arguments to set up a timer for benchmark kernels
@@ -197,11 +202,7 @@ class Runner:
         :rtype: TimerResult
         """
         assert kernel_name in self.kernel_list
-        timer_dict:Dict = {}
-        if isinstance(timer,TimerArgs):
-            timer_dict = timer.__dict__()
-        else:
-            timer_dict = timer
+        timer_dict: Dict = timer.__dict__() if isinstance(timer, TimerArgs) else timer
         return F.run(
             kernel_name=kernel_name,
             input=input,
