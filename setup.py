@@ -93,6 +93,10 @@ class CMakeBuild(build_ext):
 # logic and declaration, and simpler if you include description/version in a file.
 with open("README.md", "r") as f:
     long_desc = f.read()
+
+with open("requirements.txt", "r") as f:
+    install_requires = [r.strip() for r in f.readlines()]
+
 setup(
     name="pyoclk",
     version=__version__,
@@ -108,13 +112,13 @@ setup(
         "Documentation": "https://opencl-kernel-python-wrapper.readthedocs.io/en/latest/",
         "Source Code": "https://github.com/jinmingyi1998/opencl_kernels",
     },
-    license="BSD-3-Clause",
+    license="MIT",
     packages=["oclk", "oclk.third_party.OpenCL.lib.x86_64"],
     include_package_data=True,
     ext_modules=[CMakeExtension("oclk_C")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
-    install_requires=["numpy"],
+    install_requires=install_requires,
     python_requires=">=3.6",
     classifiers=[
         "Development Status :: 5 - Production/Stable",

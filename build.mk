@@ -21,3 +21,4 @@ clean:
 	rm -rf dist/
 	rm -rf pyoclk.egg-info/
 	rm -rf docs/build
+	rm -rf docs/src
