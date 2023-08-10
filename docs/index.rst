@@ -15,10 +15,15 @@ An easy way to launch OpenCL kernel, also benchmark, tune
     :alt: Static Badge
     :target: https://opencl-kernel-python-wrapper.readthedocs.io/en/latest/
 
+.. image:: https://img.shields.io/badge/License-BSD--3-green
+    :alt: Static Badge
+
+
 .. toctree::
     :maxdepth: 4
 
     install
     quick_example
+    benchmark
     api_reference
 

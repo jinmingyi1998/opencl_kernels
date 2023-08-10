@@ -6,7 +6,7 @@ import numpy as np
 import oclk.functions as F
 
 try:
-    from oclk.oclk_C import TimerResult, RunnerReturn
+    from oclk.oclk_C import RunnerReturn, TimerResult
 except ImportError:
     # fake class in case of building api docs
     class TimerResult:

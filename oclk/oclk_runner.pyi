@@ -2,8 +2,6 @@ from typing import Dict, List, Union, Optional
 
 import numpy as np
 
-import oclk.functions as F
-
 class TimerArgs:
     enable: bool
     warmup: int
@@ -12,6 +10,8 @@ class TimerArgs:
 
     def __init__(self, enable: bool, warmup: int, repeat: int, name: str): ...
     def __dict__(self): ...
+
+TimerArgsDisabled = TimerArgs(False, 0, 0, "no_name")
 
 class Runner:
     has_initialized: bool
@@ -33,5 +33,5 @@ class Runner:
         local_work_size: List[int],
         global_work_size: List[int],
         wait: bool = True,
-        timer: Union[Dict, F.TimerArgs] = F.TimerArgsDisabled,
+        timer: Union[Dict, TimerArgs] = TimerArgsDisabled,
     ) -> List[np.ndarray]: ...

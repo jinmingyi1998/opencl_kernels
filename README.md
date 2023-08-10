@@ -6,6 +6,8 @@
 
 [![readthedocs](https://img.shields.io/badge/readthedocs-8CA1AF?logo=readthedocs&labelColor=white)](https://opencl-kernel-python-wrapper.readthedocs.io/en/latest/)
 
+![license](https://img.shields.io/badge/License-MIT-darkgreen)
+
 ## Install
 
 ### Requirements
@@ -136,6 +138,10 @@ out = out.reshape([-1])
 print(a[:8])
 print(out[:8])
 ```
+### Kernel Benchmark
+
+1. write a config like [bench_add.yaml](examples/bench_add.yaml)
+2. run `python -m oclk.benchmark examples/bench_add.yaml`
 
 ### Python api Usage
 

@@ -1,0 +1,98 @@
+- suite_name: add # declare a suite of benchmark
+  kernel_file: examples/add.cl
+  kernels:
+    - name: add
+      definition: ""
+      args:
+        - name: a
+          type: array
+          dtype: float32 # np.dtype: int32 int64 float32 float64 ...
+          shape:
+            - 64
+            - 64
+            - 64
+          value:
+            generate: random # constant, random
+        - name: b
+          type: array
+          dtype: float32
+          shape: [64, 64, 64]
+          value:
+            type: constant
+            value: 0
+        - name: length
+          type: int # ctypes: see https://opencl-kernel-python-wrapper.readthedocs.io/en/latest/src/oclk.html#oclk.oclk_runner.Runner.run
+          value:
+            type: constant
+            value: 262144
+        - name: out
+          type: array
+          dtype: float32
+          shape: [64, 64, 64]
+          # value field default to constant zero
+      local_work_size: [1]
+      global_work_size: [262144]
+    - name: add_constant
+      definition: ""
+      local_work_size: [ 1 ]
+      global_work_size: [ 262144 ]
+      args:
+        - name: a
+          type: array
+          dtype: float32
+          shape:
+            - 64
+            - 64
+            - 64
+          value:
+            generate: random
+        - name: x
+          type: float
+          shape: [ 64, 64, 64 ]
+          value:
+            type: constant
+            value: 0
+        - name: length
+          type: long
+          value:
+            type: constant
+            value: 262144
+        - name: out
+          type: array
+          dtype: float32
+          shape: [ 64, 64, 64 ]
+    - name: add_batch
+      definition: "-DBATCH_SIZE=4"
+      local_work_size: [ 1 ]
+      global_work_size: [ 65536 ]
+      args:
+        - name: a
+          type: array
+          dtype: float32
+          shape:
+            - 64
+            - 64
+            - 64
+          value:
+            generate: random # constant, random
+        - name: b
+          type: array
+          dtype: float32
+          shape: [64, 64, 64]
+          value:
+            type: constant
+            value: 0
+        - name: length
+          type: long
+          value:
+            type: constant
+            value: 262144
+        - name: out
+          type: array
+          dtype: float32
+          shape: [64, 64, 64]
+          # value field default to constant zero
+  timer:
+    prefix: "bench_add" # optional
+    repeat: 5
+    warmup: 5
