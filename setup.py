@@ -124,7 +124,7 @@ setup(
         "Development Status :: 5 - Production/Stable",
         "Environment :: GPU",
         "Operating System :: POSIX :: Linux",
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: C++",
         "Programming Language :: Python :: 3 :: Only",

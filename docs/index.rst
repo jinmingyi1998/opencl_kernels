@@ -15,7 +15,7 @@ An easy way to launch OpenCL kernel, also benchmark, tune
     :alt: Static Badge
     :target: https://opencl-kernel-python-wrapper.readthedocs.io/en/latest/
 
-.. image:: https://img.shields.io/badge/License-BSD--3-green
+.. image:: https://img.shields.io/badge/License-MIT-green
     :alt: Static Badge
 
 
