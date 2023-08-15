@@ -42,6 +42,12 @@ def run_suite(suite: Suite):
                 if arg.type == "array":
                     if arg.value.generate == "random":
                         v = np.random.random(arg.shape)
+                        if (
+                            isinstance(arg.value.value, list)
+                            and len(arg.value.value) == 2
+                        ):
+                            start, end = arg.value.value[0], arg.value.value[1]
+                            v = v * (end - start) - start
                     else:
                         v = np.ones(arg.shape, dtype=np.dtype(arg.dtype))
                         v *= arg.value.value
@@ -51,8 +57,21 @@ def run_suite(suite: Suite):
                     if arg.value.generate == "random":
                         if arg.type in ["float", "double"]:
                             v = np.random.rand()
+                            if (
+                                isinstance(arg.value.value, list)
+                                and len(arg.value.value) == 2
+                            ):
+                                start, end = arg.value.value[0], arg.value.value[1]
+                                v = v * (end - start) - start
                         else:
-                            v = np.random.randint(0, 1 << 15)
+                            if (
+                                isinstance(arg.value.value, list)
+                                and len(arg.value.value) == 2
+                            ):
+                                start, end = arg.value.value[0], arg.value.value[1]
+                                v = np.random.randint(start, end + 1)
+                            else:
+                                v = np.random.randint(0, 65535)
                     else:
                         v = arg.value.value
                     d["value"] = v

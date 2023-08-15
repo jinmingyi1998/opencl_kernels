@@ -29,7 +29,7 @@ class KernelArg(BaseModel):
     name: str = ""
     type: str  # see arg_support_type
     dtype: str = "float32"  # used for numpy array when type is array
-    shape: Optional[List] = None
+    shape: Optional[List] = [1]
     value: ArgValueGenerator = ArgValueGenerator()
 
     @field_validator("type")
@@ -61,12 +61,6 @@ def dict_to_Kernel(d: Dict) -> KernelArg:
 
 
 class Timer(BaseModel):
-    """
-    timer model
-
-    :var prefix: timer name prefix
-    """
-
     prefix: str = ""
     repeat: int = 1
     warmup: int = 0
