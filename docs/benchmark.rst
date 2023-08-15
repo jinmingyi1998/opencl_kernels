@@ -41,7 +41,7 @@ KernelArg
 ArgValueGenerator
 -------------------------------------------------
 
-:`generate`\: str: generate method, can be :code:`random` or :code:`constant`, default :code:`constant`
+:`method`\: str: generate method, can be :code:`random` or :code:`constant`, default :code:`constant`
 :`value`\: Union[int, float, List[Union[int, float]]]: constant value, or random value range. default :code:`0`
 
 Timer
@@ -69,7 +69,7 @@ Example
                 - 64
                 - 64
               value:
-                generate: random
+                method: random
             - name: b
               type: array
               dtype: float32
@@ -102,7 +102,7 @@ Example
                 - 64
                 - 64
               value:
-                generate: random
+                method: random
             - name: x
               type: float
               shape: [ 64, 64, 64 ]
@@ -131,7 +131,7 @@ Example
                 - 64
                 - 64
               value:
-                generate: random # constant, random
+                method: random # constant, random
             - name: b
               type: array
               dtype: float32

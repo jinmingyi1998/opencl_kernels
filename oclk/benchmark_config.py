@@ -4,7 +4,7 @@ from pydantic import BaseModel, field_validator
 
 
 class ArgValueGenerator(BaseModel):
-    generate: str = "constant"
+    method: str = "constant"
     value: Union[int, float, List[Union[int, float]]] = 0
 
     @classmethod

@@ -40,7 +40,7 @@ def run_suite(suite: Suite):
                         f"arg.type must be int, float, array, got {arg.type}"
                     )
                 if arg.type == "array":
-                    if arg.value.generate == "random":
+                    if arg.value.method == "random":
                         v = np.random.random(arg.shape)
                         if (
                             isinstance(arg.value.value, list)
@@ -54,7 +54,7 @@ def run_suite(suite: Suite):
                     v = np.ascontiguousarray(v, dtype=np.dtype(arg.dtype))
                     d["value"] = v
                 else:
-                    if arg.value.generate == "random":
+                    if arg.value.method == "random":
                         if arg.type in ["float", "double"]:
                             v = np.random.rand()
                             if (
