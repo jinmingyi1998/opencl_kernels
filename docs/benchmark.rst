@@ -65,10 +65,7 @@ Example
             - name: a
               type: array
               dtype: float32
-              shape:
-                - 64
-                - 64
-                - 64
+              shape: [64, 64, 64]
               value:
                 method: random
             - name: b
@@ -132,7 +129,7 @@ Example
                 - 64
                 - 64
               value:
-                method: random # constant, random
+                method: random
             - name: b
               type: array
               dtype: float32

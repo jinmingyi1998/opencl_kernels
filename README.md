@@ -1,11 +1,8 @@
 # OpenCL Kernel Python Wrapper
 
 [![github badge](https://img.shields.io/badge/view%20on%20github-gray?style=plastic&logo=github)](https://github.com/jinmingyi1998/opencl_kernels)
-
 [![pypi badge](https://img.shields.io/badge/pypi-pyoclk-blue?style=plastic&logo=pypi&labelColor=white)](https://pypi.org/project/pyoclk/)
-
 [![readthedocs](https://img.shields.io/badge/readthedocs-8CA1AF?logo=readthedocs&labelColor=white)](https://opencl-kernel-python-wrapper.readthedocs.io/en/latest/)
-
 ![license](https://img.shields.io/badge/License-MIT-darkgreen)
 
 ## Install
