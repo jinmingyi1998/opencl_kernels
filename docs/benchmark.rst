@@ -24,7 +24,8 @@ Kernel
 ------------------------------------------------
 
 :`name`\: str: the name of the kernel
-:`definition`\: str: program compile definition, with "-D"
+:`suffix`\: Optional[str]: suffix of the kernel, used in timer
+:`definition`\: Optional[str]: program compile definition, with "-D"
 :`local_work_size`\: List[int]: local work size of kernel
 :`global_work_size`\: List[int]: global work size of kernel
 :`args`\: List[`KernelArg`_]: list of arguments, in the order

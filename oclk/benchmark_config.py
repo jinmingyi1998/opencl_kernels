@@ -48,7 +48,8 @@ def dict_to_KernelArg(d: Dict) -> KernelArg:
 
 class Kernel(BaseModel):
     name: str
-    definition: str
+    suffix: str = ""
+    definition: str = ""
     local_work_size: List[int]
     global_work_size: List[int]
     args: List[KernelArg]

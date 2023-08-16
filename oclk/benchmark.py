@@ -80,7 +80,7 @@ def run_suite(suite: Suite):
 
             timer = TimerArgs(
                 True,
-                name=f"{suite.timer.prefix}.{k.name}",
+                name=".".join([suite.timer.prefix, k.name, k.suffix]),
                 warmup=suite.timer.warmup,
                 repeat=suite.timer.repeat,
             )
