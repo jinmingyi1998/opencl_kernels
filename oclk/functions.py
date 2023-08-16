@@ -11,16 +11,20 @@ try:
 except ImportError:
     import sys
 
+
     # make a dummy module to avoid Exception, useful for sphinx-apidoc
     class DummyC:
-        def load_kernel(self, *args, **kwargs):
+        @staticmethod
+        def load_kernel(*args, **kwargs):
             ...
 
-        def init(self, *args, **kwargs):
+        @staticmethod
+        def init(*args, **kwargs):
             ...
 
         class RunnerReturn:
             ...
+
 
     _C = DummyC
     init = _C.init
@@ -34,7 +38,7 @@ def init() -> int:
 
 
 def loak_kernel(
-    cl_file: str, kernel_name: str, compile_option: Union[str, List[str]]
+        cl_file: str, kernel_name: str, compile_option: Union[str, List[str]]
 ) -> int:
     if not isinstance(compile_option, str):
         assert isinstance(compile_option, list)
@@ -49,14 +53,14 @@ def release_kernel(kernel_name: str) -> int:
 
 
 def run(
-    *,
-    kernel_name: str,
-    input: List[Dict[str, Union[int, float, np.array]]],
-    output: List[str],
-    local_work_size: List[int],
-    global_work_size: List[int],
-    wait: bool = True,
-    timer: Dict = None,
+        *,
+        kernel_name: str,
+        input: List[Dict[str, Union[int, float, np.array]]],
+        output: List[str],
+        local_work_size: List[int],
+        global_work_size: List[int],
+        wait: bool = True,
+        timer: Dict = None,
 ) -> _C.RunnerReturn:
     if timer is None:
         timer_dict = {}
