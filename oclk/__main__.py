@@ -1,8 +1,9 @@
 import typer
+
 import oclk.benchmark
 
-
 app = typer.Typer(add_completion=False)
+
 
 @app.command()
 def benchmark(config_file: str):

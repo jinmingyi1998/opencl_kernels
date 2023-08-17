@@ -2,6 +2,17 @@ from typing import Dict, List, Union, Optional
 
 import numpy as np
 
+class TimerResult:
+    name: str
+    cnt: str
+    avg: str
+    stdev: str
+    total: str
+
+class RunnerReturn:
+    timer_result: TimerResult
+    results: List[np.ndarray]
+
 class TimerArgs:
     enable: bool
     warmup: int
@@ -34,4 +45,6 @@ class Runner:
         global_work_size: List[int],
         wait: bool = True,
         timer: Union[Dict, TimerArgs] = TimerArgsDisabled,
-    ) -> List[np.ndarray]: ...
+    ) -> RunnerReturn: ...
+
+def CtxRunner(filename, kernel_name, compile_option=""): ...

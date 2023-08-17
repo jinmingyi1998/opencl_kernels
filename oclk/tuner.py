@@ -1,76 +1,224 @@
-import contextlib
+import abc
 import functools
 import itertools
-from oclk.oclk_runner import Runner, TimerArgs
+from collections.abc import Iterable
+from typing import Dict, List, Optional, Union
 
+import numpy as np
+from tqdm import tqdm
 
-@contextlib.contextmanager
-def _run(filename, kernel_name, compile_option=""):
-    r = Runner()
-    r.load_kernel(filename, kernel_name, compile_option)
-    try:
-        yield r
-    finally:
-        r.release_kernel(kernel_name)
-
-
-def tune_():
-    filename = ''
-    kernel_name = ''
-    compile_option = ''
-    with _run(filename, kernel_name, compile_option) as r:
-        ...
+import oclk.functions as F
+from oclk.oclk_runner import CtxRunner, Runner, RunnerReturn, TimerArgs
 
 
 class TuneArgGenerator:
     def __init__(self, method, values):
-        assert method in ['range', 'values']
+        assert method in ["range", "values"]
         self.method = method  # range / values
         self.values = values
         self.candidates = []
-        if self.method == 'range':
+        if self.method == "range":
             self.candidates = list(range(*self.values))
-        elif self.method == 'values':
-            self.candidates = values
+        elif self.method == "values":
+            self.candidates = list(values)
 
     def __iter__(self):
         for v in self.candidates:
             yield v
 
+    def __str__(self):
+        return "TuneArgGenerator " + str(self.candidates)
 
 
-class Tunner:
-    def __init__(self,*,name,**kwargs):
-        for key,value in kwargs.items():
-            self.__setattr__(key,value)
-            self.metrics = []
+class Tuner:
+    def __init__(self, name="", **kwargs):
+        r = Runner()
+        if not name:
+            name = type(self).__name__
+        self.name = name
+        self.metrics = []
+        self.timer = TimerArgs(True, 5, 50, name)
+        for key, value in kwargs.items():
+            self.__setattr__(key, value)
 
+    @abc.abstractmethod
+    def setup(self):
+        """
+        abstract method, will be called before tunable methods,
+         used to initialize variables
+        """
+        ...
 
+    def run(
+        self,
+        kernel_file: str,
+        kernel_name: str,
+        compile_option: str,
+        *,
+        input: List[Dict[str, Union[int, float, np.array]]],
+        local_work_size: List[int],
+        global_work_size: List[int],
+        output: Optional[List[str]] = None,
+        timer: Optional[Union[Dict, TimerArgs]] = None,
+    ) -> RunnerReturn:
+        """
+        Wrapper for `Runner.run <#oclk.oclk_runner.Runner.run>`_
+        In this method, Runner will load a kernel and run kernel, finally release kernel
 
-    def range_arg(self,name,start,end,step=1):
-        g = TuneArgGenerator('range',(start,end,step))
+        :param kernel_file: filename can be absolute or relative path
+        :param kernel_name: kernel_name is the kernel functions' name
+        :param compile_option: compile option can be strings like "-DMY_DEF=1", **"-D" is necessary**
+        :param input: see `Runner.run`
+        :param local_work_size: see `Runner.run`
+        :param global_work_size: see `Runner.run`
+        :param output: see `Runner.run`
+        :param timer: see `Runner.run`
+        :return: see `Runner.run`
+        """
+        if timer is None:
+            timer = self.timer
+        with CtxRunner(kernel_file, kernel_name, compile_option) as r:
+            F.clear_timer()
+            return r.run(
+                kernel_name=kernel_name,
+                input=input,
+                local_work_size=local_work_size,
+                global_work_size=global_work_size,
+                output=output,
+                wait=True,
+                timer=timer,
+            )
+
+    @staticmethod
+    def range_arg(name, start, end, step=1):
+        """
+        decorator to generate ranged arguments,
+        `start`,`end``,`step` are the same as `range()`
+
+        :param name: argument name
+        :param start: range start
+        :param end: range end
+        :param step: range step
+        """
+        g = TuneArgGenerator("range", (start, end, step))
+
         def decorator(fn):
             @functools.wraps(fn)
-            def innfer_wrapper(*args, **kwargs):
+            def innfer_wrapper(self, *args, **kwargs):
                 kwargs[name] = g
-                return fn(*args, **kwargs)
+                return fn(self, *args, **kwargs)
+
             return innfer_wrapper
+
         return decorator
 
-    def values_arg(self,name,*args):
-        g = TuneArgGenerator('values',*args)
+    @staticmethod
+    def worksize_arg(
+        name,
+        dim_size: int,
+        dim0: List[int],
+        dim1: Optional[List[int]] = None,
+        dim2: Optional[List[int]] = None,
+    ):
+        """
+        decorator to generate `worksize` arguments
+
+        :param name: argument name
+        :param dim_size: work dim size
+        :param dim0: possible values for dim0
+        :param dim1: possible values for dim1
+        :param dim2: possible values for dim2
+        """
+        assert 0 < dim_size <= 3
+        dims = []
+        for i in range(dim_size):
+            dims.append(locals()[f"dim{i}"])
+        worksizes: List[List[int]] = [list(t) for t in itertools.product(*dims)]
+        g = TuneArgGenerator("values", worksizes)
+
         def decorator(fn):
             @functools.wraps(fn)
-            def innfer_wrapper(*args, **kwargs):
+            def innfer_wrapper(self, *args, **kwargs):
                 kwargs[name] = g
-                return fn(*args, **kwargs)
+                return fn(self, *args, **kwargs)
+
             return innfer_wrapper
+
         return decorator
 
-    def tune(self,fn):
-        @functools.wraps(fn)
-        def wrapper(*args,**kwargs):
-            result = fn(*args,**kwargs)
-            self.metrics.append(result)
-        return wrapper
+    @staticmethod
+    def values_arg(name, *args):
+        """
+        decorator, add a `values` argument generator
 
+        :param name: the name of the argument
+        :param args: all possible values
+        """
+        g = TuneArgGenerator("values", args)
+
+        def decorator(fn):
+            @functools.wraps(fn)
+            def innfer_wrapper(self, *args, **kwargs):
+                kwargs[name] = g
+                return fn(self, *args, **kwargs)
+
+            return innfer_wrapper
+
+        return decorator
+
+    @staticmethod
+    def tune():
+        """
+        decorator, mark a tunable method.
+
+        **NOTE:** method should be passed kwargs only, must return a value as the metric.
+            all the returned values will be sorted by ASC order to pick the best.
+            for instance, this value can be `rtn.timer_result.avg`
+
+        :raise TuningSkip: raise `TuningSkip` to skip an argument combination
+        """
+
+        def decorator(fn):
+            @functools.wraps(fn)
+            def wrapper(self, *args, **kwargs):
+                if args:
+                    raise ValueError(
+                        "Tune method takes no arguments, only accept kwargs"
+                    )
+                self.setup()
+                args_set = []
+                key_set = []
+
+                for k, v in kwargs.items():
+                    key_set.append(k)
+                    if not issubclass(type(v), Iterable):
+                        args_set.append([v])
+                    else:
+                        args_set.append(v)
+
+                for fnargs in tqdm(list(itertools.product(*args_set))):
+                    fnargs = dict(zip(key_set, fnargs))
+                    try:
+                        result = fn(self, **fnargs)
+                        self.metrics.append((fnargs, result))
+                    except TuningSkip as e:
+                        ...
+
+            return wrapper
+
+        return decorator
+
+    def top_result(self, k=5):
+        """
+        Get the top k results by ASC order
+
+        :param k:
+        :return:
+        """
+        self.metrics.sort(key=lambda x: x[1])
+        return self.metrics[:k]
+
+
+class TuningSkip(BaseException):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

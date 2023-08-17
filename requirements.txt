@@ -1,4 +1,5 @@
 numpy
 pydantic
 pyyaml
+tqdm
 typer

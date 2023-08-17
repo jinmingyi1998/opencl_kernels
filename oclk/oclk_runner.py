@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from functools import wraps
 from typing import Dict, List, Optional, Union
 
@@ -6,7 +7,7 @@ import numpy as np
 import oclk.functions as F
 
 try:
-    from oclk.oclk_C import RunnerReturn, TimerResult
+    from oclk.oclk_C import RunnerReturn, TimerResult, clear_timer
 except ImportError:
     # fake class in case of building api docs
     class TimerResult:
@@ -161,9 +162,9 @@ class Runner:
         *,
         kernel_name: str,
         input: List[Dict[str, Union[int, float, np.array]]],
-        output: List[str],
         local_work_size: List[int],
         global_work_size: List[int],
+        output: Optional[List[str]] = None,
         wait: Optional[bool] = True,
         timer: Optional[Union[Dict, TimerArgs]] = TimerArgsDisabled,
     ) -> RunnerReturn:
@@ -202,6 +203,7 @@ class Runner:
         :rtype: TimerResult
         """
         assert kernel_name in self.kernel_list
+
         timer_dict: Dict = timer.__dict__() if isinstance(timer, TimerArgs) else timer
         return F.run(
             kernel_name=kernel_name,
@@ -212,3 +214,13 @@ class Runner:
             wait=wait,
             timer=timer_dict,
         )
+
+
+@contextmanager
+def CtxRunner(filename, kernel_name, compile_option=""):
+    r: Runner = Runner()
+    r.load_kernel(filename, kernel_name, compile_option)
+    try:
+        yield r
+    finally:
+        r.release_kernel(kernel_name)

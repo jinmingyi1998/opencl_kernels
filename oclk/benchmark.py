@@ -13,19 +13,9 @@ from oclk.benchmark_config import (
     arg_support_type,
     dict_to_Suite,
 )
-from oclk.oclk_runner import Runner, TimerArgs
+from oclk.oclk_runner import CtxRunner, TimerArgs
 
 app = typer.Typer()
-
-
-@contextmanager
-def benchmark_run(filename, kernel_name, compile_option=""):
-    r = Runner()
-    r.load_kernel(filename, kernel_name, compile_option)
-    try:
-        yield r
-    finally:
-        r.release_kernel(kernel_name)
 
 
 def parse_args(args: List[KernelArg]):
@@ -33,16 +23,11 @@ def parse_args(args: List[KernelArg]):
     for i, arg in enumerate(args):
         d = {"name": arg.name if arg.name else f"arg#{i}"}
         if arg.type not in arg_support_type:
-            raise ValueError(
-                f"arg.type must be int, float, array, got {arg.type}"
-            )
+            raise ValueError(f"arg.type must be int, float, array, got {arg.type}")
         if arg.type == "array":
             if arg.value.method == "random":
                 v = np.random.random(arg.shape)
-                if (
-                        isinstance(arg.value.value, list)
-                        and len(arg.value.value) == 2
-                ):
+                if isinstance(arg.value.value, list) and len(arg.value.value) == 2:
                     start, end = arg.value.value[0], arg.value.value[1]
                     v = v * (end - start) - start
             else:
@@ -54,17 +39,11 @@ def parse_args(args: List[KernelArg]):
             if arg.value.method == "random":
                 if arg.type in ["float", "double"]:
                     v = np.random.rand()
-                    if (
-                            isinstance(arg.value.value, list)
-                            and len(arg.value.value) == 2
-                    ):
+                    if isinstance(arg.value.value, list) and len(arg.value.value) == 2:
                         start, end = arg.value.value[0], arg.value.value[1]
                         v = v * (end - start) - start
                 else:
-                    if (
-                            isinstance(arg.value.value, list)
-                            and len(arg.value.value) == 2
-                    ):
+                    if isinstance(arg.value.value, list) and len(arg.value.value) == 2:
                         start, end = arg.value.value[0], arg.value.value[1]
                         v = np.random.randint(start, end + 1)
                     else:
@@ -79,7 +58,7 @@ def parse_args(args: List[KernelArg]):
 
 def run_suite(suite: Suite):
     for k in suite.kernels:
-        with benchmark_run(suite.kernel_file, k.name, k.definition) as r:
+        with CtxRunner(suite.kernel_file, k.name, k.definition) as r:
             assert r is not None
             input = parse_args(k.args)
             timer = TimerArgs(
