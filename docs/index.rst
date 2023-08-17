@@ -21,5 +21,6 @@ An easy way to launch OpenCL kernel, also benchmark, tune
     install
     quick_example
     benchmark
+    tune
     api_reference
 

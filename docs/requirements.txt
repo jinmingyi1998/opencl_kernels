@@ -3,5 +3,6 @@ sphinx-copybutton==0.5.2
 furo==2023.7.26
 numpy
 pydantic
+tqdm
 typer
 pyyaml

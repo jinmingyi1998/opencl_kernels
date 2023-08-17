@@ -3,14 +3,7 @@ from typing import Dict, List, Union
 
 import numpy as np
 
-from oclk import Runner, TimerArgs
-
-
-def wrap_args(**kwargs) -> List[Dict[str, Union[str, np.ndarray, int, float]]]:
-    """
-    easily make the arg dict
-    """
-    return [{"name": k, "value": v} for k, v in kwargs.items()]
+from oclk import Runner, TimerArgs, input_maker
 
 
 def add():
@@ -27,12 +20,13 @@ def add():
 
     result = r.run(
         kernel_name="add",
-        input=[
-            {"name": "a", "value": a},
-            {"name": "b", "value": b},
-            {"name": "length", "value": arr_length, "type": "int"},
-            {"name": "out", "value": out},
-        ],
+        input=input_maker(a=a, b=b, length=(arr_length, "int"), out=out),
+        # [
+        #     {"name": "a", "value": a},
+        #     {"name": "b", "value": b},
+        #     {"name": "length", "value": arr_length, "type": "int"},
+        #     {"name": "out", "value": out},
+        # ],
         output=["out"],
         local_work_size=[1],
         global_work_size=[arr_length],
@@ -57,7 +51,7 @@ def add_constant():
     timer = TimerArgs(True, 1, 10, "add_constant")
     rtn = r.run(
         kernel_name="add_constant",
-        input=wrap_args(a=a, x=x, length=arr_length, out=out),
+        input=Runner.input_maker(a=a, x=x, length=arr_length, out=out),
         output=["out"],
         local_work_size=[1],
         global_work_size=[arr_length],
@@ -83,7 +77,7 @@ def add_batch():
     timer = TimerArgs(True, 10, 100, "add_batch")
     result = r.run(
         kernel_name="add_batch",
-        input=wrap_args(a=a, b=b, length=arr_length, out=out),
+        input=Runner.input_maker(a=a, b=b, length=arr_length, out=out),
         output=["out"],
         local_work_size=[1],
         global_work_size=[arr_length // 4],
