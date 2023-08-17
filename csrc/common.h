@@ -235,6 +235,20 @@ clear_buffer(cl_command_queue commandQueue, cl_mem buf, size_t buffer_size) {
         commandQueue, buf, &fill_zero, 1, 0, buffer_size, 0, nullptr, nullptr);
     CL_CHECK_RTN(err, "fill buffer failed");
 }
-
+inline std::string GetDeviceName(){
+    char deviceName[128];
+    char deviceVersion[128];
+    int err = clGetDeviceInfo(
+        ocl_instance.device_id, CL_DEVICE_NAME, sizeof(deviceName), deviceName, NULL);
+    err |= clGetDeviceInfo(ocl_instance.device_id,
+                           CL_DEVICE_VERSION,
+                           sizeof(deviceVersion),
+                           deviceVersion,
+                           NULL);
+    CL_CHECK_RTN(err, "Error getting device info");
+    std::string name(deviceName);
+    std::string version(deviceVersion);
+    return name+"@"+version;
+}
 } // namespace oclk
 #endif // CLKERNELBENCH_COMMON_H

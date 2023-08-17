@@ -83,7 +83,9 @@ PYBIND11_MODULE(oclk_C, m) {
     m.def("load_kernel", &LoadKernel);
     m.def("release_kernel", &ReleaseKernel);
     m.def("run", &run_impl);
+    m.def("clear_timer",&oclk::TimeMonitor::Clear);
     m.attr("__version__") = module_version;
+    m.def("device_info",&oclk::GetDeviceName);
 
     py::class_<oclk::TimerResult>(m, "TimerResult")
         .def(py::init<const std::string &>())

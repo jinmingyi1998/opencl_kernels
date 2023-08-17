@@ -180,33 +180,37 @@ RunnerReturn run_impl(py::kwargs &kwargs) {
                       kwargs[py::str("wait")].cast<bool>(),
                       timer_args,
                       runner_return.get());
-
-    auto out_arg_list = kwargs[py::str("output")].cast<py::list>();
-    auto in_arg_list  = kwargs["input"].cast<py::list>();
-    py::list result_arrays;
-    for (auto &s : out_arg_list) {
-        auto arg_name = s.cast<std::string>();
-        for (int i = 0; i < kernel_args.size(); i++) {
-            auto &c = kernel_args[i];
-            if (c.name == arg_name) {
-                cl_mem mem;
-                memcpy(&mem, c.bytes.data(), c.bytes.size());
-                py::array arr = (in_arg_list[i].cast<py::dict>())["value"]
-                                    .cast<py::array>();
-                spdlog::debug("read arg: [{:>10}] [size: {}] [data size: {}]",
-                              arg_name,
-                              arr.size(),
-                              oclk::human_readable_bytesize(arr.nbytes()));
-                oclk::read_data_from_buffer(
-                    env->command_queue, mem, arr.mutable_data(), arr.nbytes());
-                result_arrays.append(arr);
-                break;
-            }
-        }
-    }
     RunnerReturn result;
     result.timer_result = runner_return->timer_result;
-    result.results      = result_arrays;
+    if (!kwargs[py::str("output").cast<py::object>()].is_none()) {
+        auto out_arg_list = kwargs[py::str("output")].cast<py::list>();
+        auto in_arg_list  = kwargs["input"].cast<py::list>();
+        py::list result_arrays;
+        for (auto &s : out_arg_list) {
+            auto arg_name = s.cast<std::string>();
+            for (int i = 0; i < kernel_args.size(); i++) {
+                auto &c = kernel_args[i];
+                if (c.name == arg_name) {
+                    cl_mem mem;
+                    memcpy(&mem, c.bytes.data(), c.bytes.size());
+                    py::array arr = (in_arg_list[i].cast<py::dict>())["value"]
+                                        .cast<py::array>();
+                    spdlog::debug(
+                        "read arg: [{:>10}] [size: {}] [data size: {}]",
+                        arg_name,
+                        arr.size(),
+                        oclk::human_readable_bytesize(arr.nbytes()));
+                    oclk::read_data_from_buffer(env->command_queue,
+                                                mem,
+                                                arr.mutable_data(),
+                                                arr.nbytes());
+                    result_arrays.append(arr);
+                    break;
+                }
+            }
+        }
+        result.results = result_arrays;
+    }
     oclk::release_allocated_gpumem();
     return result;
 }
