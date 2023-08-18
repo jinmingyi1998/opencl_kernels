@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -static-libstdc++ -static-libgcc")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -static-libgcc")
 
 add_definitions(-DOCLK_VERSION_INFO=${OCLK_VERSION_INFO})
+add_definitions(-DPYBIND11_DETAILED_ERROR_MESSAGES=1)
 
 include_directories(oclk/third_party/OpenCL/include)
 link_directories(oclk/third_party/OpenCL/lib/${CMAKE_SYSTEM_PROCESSOR})
