@@ -42,6 +42,7 @@ def tune(
     results: List[Dict] = []
     for module_class_, method_list in Tuner.tuner_registry.items():
         module_, class_ = module_class_
+        print("running on", f"{module_}.{class_}")
         suite: Tuner = getattr(module_list[module_], class_)()
         for m in method_list:
             getattr(suite, m)()
@@ -60,6 +61,39 @@ def tune(
         import json
 
         json.dump(results, f)
+
+
+@app.command()
+def new(command: str, name: str):
+    assert command in ["benchmark", "tune"]
+    if command == "tune":
+        with open(f"tune_{name.lower()}.py", "w+") as f:
+            f.write(
+                f"""
+from oclk.tuner import Tuner
+from oclk import input_maker
+import numpy as np
+
+class {name.title()}Tuner(Tuner):
+    def setup(self):
+        self.dtype = np.float32
+    
+    @Tuner.worksize_arg('local_work_size',1,list(Tuner.exp2_range(1,1024)))
+    @Tuner.tune()
+    def {name}(self,local_work_size):
+        rtn = self.run(
+            '',
+            '',
+            '',
+            input=input_maker(
+            ),
+            global_work_size=[],
+            local_work_size=local_work_size
+        )
+        return rtn.timer_result.avg
+
+"""
+            )
 
 
 if __name__ == "__main__":
