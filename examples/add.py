@@ -2,7 +2,6 @@ import os
 from typing import Dict, List, Union
 
 import numpy as np
-
 from oclk import Runner, TimerArgs, input_maker
 
 

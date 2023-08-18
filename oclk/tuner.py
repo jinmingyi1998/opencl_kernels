@@ -1,8 +1,9 @@
 import abc
 import functools
 import itertools
+from collections import defaultdict
 from collections.abc import Iterable
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from tqdm import tqdm
@@ -31,6 +32,8 @@ class TuneArgGenerator:
 
 
 class Tuner:
+    tuner_registry = defaultdict(list)
+
     def __init__(self, name="", **kwargs):
         r = Runner()
         if not name:
@@ -113,6 +116,20 @@ class Tuner:
         return decorator
 
     @staticmethod
+    def exp2_range(start, end):
+        """
+        generate exp2 values, from start(inclusive) to end(inclusive).
+
+        :param start:
+        :param end:
+        :return:
+        """
+        a = start
+        while a <= end:
+            yield a
+            a *= 2
+
+    @staticmethod
     def worksize_arg(
         name,
         dim_size: int,
@@ -179,6 +196,11 @@ class Tuner:
         """
 
         def decorator(fn):
+            _module_name = fn.__module__
+            _class_name = fn.__qualname__.split(".")[0]
+            _method_name = fn.__name__
+            Tuner.tuner_registry[(_module_name, _class_name)].append(_method_name)
+
             @functools.wraps(fn)
             def wrapper(self, *args, **kwargs):
                 if args:
@@ -208,14 +230,47 @@ class Tuner:
 
         return decorator
 
-    def top_result(self, k=5):
+    def top_result(self, k=5) -> List[Tuple[Dict[str, Any], float]]:
         """
         Get the top k results by ASC order
 
-        :param k:
-        :return:
+        :param k: top k
+        :type k: int
+        :return: top k results, for instance:
+
+                 .. code-block::
+
+                        [
+                            (
+                                {
+                                    key:value,
+                                    key2:value2,
+                                    key3:value3,
+                                },
+                                1.23
+                            ),
+                            (
+                                {
+                                    key:value,
+                                    key2:value2,
+                                    key3:value3,
+                                },
+                                4.56
+                            ),
+                            (
+                                {
+                                    key:value,
+                                    key2:value2,
+                                    key3:value3,
+                                },
+                                7.89
+                            )
+                        ]
+
+        :rtype: List[Tuple[Dict[str, Any], float]]
         """
         self.metrics.sort(key=lambda x: x[1])
+
         return self.metrics[:k]
 
 

@@ -14,15 +14,25 @@ How To
             :`range_arg <src/oclk.html#oclk.tuner.Tuner.range_arg>`_:    can generate ranged arguments like `range`
 
         c. add a decorator `Tuner.tune() <src/oclk.html#oclk.tuner.Tuner.tune>`_ to mark it as a tunable method
+
+                **NOTE:** decorator :code:`tune()` should be the last decorator, all possible arguments are unpacked in :code:`tune()` and passed to your method
+
         d. implement this method to run once with a specific arguments combination,
             call `self.run() <src/oclk.html#oclk.tuner.Tuner.run>`_ to run a kernel.
 
     B. write a :code:`setup()` method *if needed*
 
            :code:`setup()` is an abstract method, will be called before tuning, you can initialize some variabels with `self`
+3. execute and tune, two ways for you:
+    A. execute in cli
+        a. go to the directory where contains the tuner class above
+        b. execute :code:`python -m oclk tune`
+        c. then will execute all tuner class under the directory and output results in a json file
+        d. see more options with :code:`python -m oclk tune --help`
 
-    C. Instantiate this class and call the above method
-    D. Got the top :code:`k` best result and arguments combination with `tuner.top_result() <src/oclk.html#oclk.tuner.Tuner.top_result>`_
+    B. execute in python.
+        a. Instantiate this class and call the above method
+        b. Got the top :code:`k` best result and arguments combination with `tuner.top_result() <src/oclk.html#oclk.tuner.Tuner.top_result>`_
 
 Example
 ==========================================================================
