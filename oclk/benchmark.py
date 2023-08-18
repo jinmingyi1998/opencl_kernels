@@ -63,7 +63,7 @@ def run_suite(suite: Suite):
             input = parse_args(k.args)
             timer = TimerArgs(
                 True,
-                name=".".join([suite.timer.prefix, k.name, k.suffix]),
+                name=".".join(s for s in [suite.timer.prefix, k.name, k.suffix] if s),
                 warmup=suite.timer.warmup,
                 repeat=suite.timer.repeat,
             )
