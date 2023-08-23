@@ -20,6 +20,10 @@ namespace py = pybind11;
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
+#ifndef OCLK_KERNEL_ARG_CUSTOM_ARRAY_SIZE
+#define OCLK_KERNEL_ARG_CUSTOM_ARRAY_SIZE 256
+#endif
+
 const std::string module_version = MACRO_STRINGIFY(OCLK_VERSION_INFO);
 
 class RunnerReturn {

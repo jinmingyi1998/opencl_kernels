@@ -155,6 +155,7 @@ cl_mem CreateImage2D(cl_context ctx,
 struct ArgWrapper {
     std::string name = "";
     std::vector<char> bytes{};
+    ArgWrapper() = default;
     template <typename T> ArgWrapper(const std::string &name, T value) {
         this->name = name;
         bytes.resize(sizeof(T));

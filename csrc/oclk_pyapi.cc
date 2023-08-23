@@ -96,6 +96,53 @@ py::list parse_args(py::list arg_dicts, std::vector<oclk::ArgWrapper> &args) {
                     spdlog::debug("    constant arg: {}", v_float);
                 }
             }
+        } else if (py::isinstance<py::list>(v)) {
+            std::vector<char> bytes;
+            bytes.resize(OCLK_KERNEL_ARG_CUSTOM_ARRAY_SIZE);
+            int length          = 0;
+            auto check_arr_size = [&](int new_ele_size) {
+                int new_length = length + new_ele_size;
+                if (new_length > bytes.size()) {
+                    bytes.resize(bytes.size() * 2);
+                }
+            };
+            py::list pylist = v.cast<py::list>();
+            for (int i = 0; i < pylist.size(); i++) {
+                py::dict var_dict    = pylist[i].cast<py::dict>();
+                std::string type_str = var_dict["type"].cast<std::string>();
+                if (type_str == "int" || type_str == "unsigned int") {
+                    unsigned int val = var_dict["value"].cast<int>();
+                    check_arr_size(sizeof(unsigned int));
+                    memcpy(bytes.data() + length, (char *)(&val), sizeof(int));
+                    length += sizeof(int);
+                } else if (type_str == "float") {
+                    float val = var_dict["value"].cast<float>();
+                    check_arr_size(sizeof(float));
+                    memcpy(
+                        bytes.data() + length, (char *)(&val), sizeof(float));
+                    length += sizeof(float);
+                } else if (type_str == "long" || type_str == "unsigned long") {
+                    unsigned long val = var_dict["value"].cast<unsigned long>();
+                    check_arr_size(sizeof(long));
+                    memcpy(bytes.data() + length, (char *)(&val), sizeof(long));
+                    length += sizeof(long);
+                } else if (type_str == "double") {
+                    double val = var_dict["value"].cast<double>();
+                    check_arr_size(sizeof(double));
+                    memcpy(
+                        bytes.data() + length, (char *)(&val), sizeof(double));
+                    length += sizeof(double);
+                } else {
+                    // error!
+                    spdlog::error("Unknown type, only support [unsigned] int, "
+                                  "[unsigned] long, float, double");
+                }
+            }
+            bytes.resize(length);
+            oclk::ArgWrapper arg;
+            arg.name  = name;
+            arg.bytes = bytes;
+            args.push_back(arg);
         } else {
             spdlog::error("error: unknown type, only support int, "
                           "float, np.array, but got {}",

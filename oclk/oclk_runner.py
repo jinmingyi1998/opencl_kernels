@@ -184,6 +184,15 @@ class Runner:
                         * [unsigned] long
                         * float
                         * double
+                * custom C struct arg: parse values as list, for example:
+
+                    .. code-block::
+
+                        [
+                            {"type": "float", "value": 1.234},
+                            {"type": "int", "value": 1234}
+                        ]
+
         :type input: List[Dict[str, Union[int, float, np.array]]]
         :param output:              List of names to specify which array will be get back from GPU buffer
         :type output: List[str]

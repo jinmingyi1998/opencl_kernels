@@ -63,7 +63,7 @@ def release_kernel(kernel_name: str) -> int:
 def run(
     *,
     kernel_name: str,
-    input: List[Dict[str, Union[int, float, np.array]]],
+    input: List[Dict[str, Union[int, float, List, np.array]]],
     local_work_size: List[int],
     global_work_size: List[int],
     output: Optional[List[str]] = None,
