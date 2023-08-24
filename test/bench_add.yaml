@@ -1,0 +1,39 @@
+- suite_name: add # declare a suite of benchmark
+  kernel_file: test/add.cl
+  kernels:
+    - name: add_float
+      definition: ""
+      args:
+        - name: a
+          type: array
+          dtype: float32 # np.dtype: int32 int64 float32 float64 ...
+          shape: [64, 64]
+          value:
+            method: random # constant, random
+        - name: b
+          type: array
+          dtype: float32
+          shape: [64, 64]
+          value:
+            method: constant
+            value: 2
+        - name: c
+          type: array
+          dtype: float32
+          shape: [64, 64]
+        - name: w
+          type: long
+          value:
+            method: constant
+            value: 64
+        - name: h
+          type: long
+          value:
+            method: constant
+            value: 64
+      local_work_size: [1, 1]
+      global_work_size: [64, 64]
+  timer:
+    prefix: "bench_add" # optional
+    repeat: 5
+    warmup: 5
