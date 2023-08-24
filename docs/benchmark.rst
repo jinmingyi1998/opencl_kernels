@@ -73,12 +73,12 @@ Example
               dtype: float32
               shape: [64, 64, 64]
               value:
-                type: constant
+                method: constant
                 value: 0
             - name: length
               type: int
               value:
-                type: constant
+                method: constant
                 value: 262144
             - name: out
               type: array
@@ -105,12 +105,12 @@ Example
               type: float
               shape: [ 64, 64, 64 ]
               value:
-                type: constant
+                method: constant
                 value: 0
             - name: length
               type: long
               value:
-                type: constant
+                method: constant
                 value: 262144
             - name: out
               type: array
@@ -135,12 +135,12 @@ Example
               dtype: float32
               shape: [64, 64, 64]
               value:
-                type: constant
+                method: constant
                 value: 0
             - name: length
               type: long
               value:
-                type: constant
+                method: constant
                 value: 262144
             - name: out
               type: array
