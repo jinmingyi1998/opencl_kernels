@@ -144,6 +144,5 @@ setup(
         "Topic :: Utilities",
         "Typing :: Typed",
         "Intended Audience :: Developers",
-    ],
-    platforms=["manylinux1_x86_64"],
+    ]
 )

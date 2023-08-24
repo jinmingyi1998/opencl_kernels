@@ -9,7 +9,7 @@ import numpy as np
 from tqdm import tqdm
 
 import oclk.functions as F
-from oclk.oclk_runner import CtxRunner, Runner, RunnerReturn, TimerArgs
+from oclk.oclk_runner import RunnerCtx, Runner, RunnerReturn, TimerArgs
 
 
 class TuneArgGenerator:
@@ -80,7 +80,7 @@ class Tuner:
         """
         if timer is None:
             timer = self.timer
-        with CtxRunner(kernel_file, kernel_name, compile_option) as r:
+        with RunnerCtx(kernel_file, kernel_name, compile_option) as r:
             F.clear_timer()
             return r.run(
                 kernel_name=kernel_name,

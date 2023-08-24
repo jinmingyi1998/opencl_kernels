@@ -13,7 +13,7 @@ from oclk.benchmark_config import (
     arg_support_type,
     dict_to_Suite,
 )
-from oclk.oclk_runner import CtxRunner, TimerArgs
+from oclk.oclk_runner import RunnerCtx, TimerArgs
 
 app = typer.Typer()
 
@@ -58,7 +58,7 @@ def parse_args(args: List[KernelArg]):
 
 def run_suite(suite: Suite):
     for k in suite.kernels:
-        with CtxRunner(suite.kernel_file, k.name, k.definition) as r:
+        with RunnerCtx(suite.kernel_file, k.name, k.definition) as r:
             assert r is not None
             input = parse_args(k.args)
             timer = TimerArgs(
@@ -82,6 +82,8 @@ def run_suite(suite: Suite):
 def benchmark(config_file: str):
     with open(config_file, "r") as f_cfg:
         cfg: List = yaml.safe_load(f_cfg.read())
+
     for suite_cfg in cfg:
         suite: Suite = dict_to_Suite(suite_cfg)
+        print(suite)
         run_suite(suite)

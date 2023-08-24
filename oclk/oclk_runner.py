@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from functools import wraps
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
 
 import numpy as np
 
@@ -167,8 +167,8 @@ class Runner:
                 Union[int, float, np.array, List[Dict[str, Union[int, float, str]]]],
             ]
         ],
-        local_work_size: List[int],
-        global_work_size: List[int],
+        local_work_size: Union[List[int],Tuple[int]],
+        global_work_size: Union[List[int],Tuple[int]],
         output: Optional[List[str]] = None,
         wait: Optional[bool] = True,
         timer: Optional[Union[Dict, TimerArgs]] = TimerArgsDisabled,
@@ -238,7 +238,7 @@ class Runner:
 
 
 @contextmanager
-def CtxRunner(filename, kernel_name, compile_option=""):
+def RunnerCtx(filename, kernel_name, compile_option=""):
     r: Runner = Runner()
     r.load_kernel(filename, kernel_name, compile_option)
     try:

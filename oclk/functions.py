@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
 
 import numpy as np
 
@@ -64,16 +64,16 @@ def run(
     *,
     kernel_name: str,
     input: List[Dict[str, Union[str, int, float, List[Dict], np.array]]],
-    local_work_size: List[int],
-    global_work_size: List[int],
+    local_work_size: Union[List[int],Tuple[int]],
+    global_work_size: Union[List[int],Tuple[int]],
     output: Optional[List[str]] = None,
     wait: bool = True,
     timer: Dict = None,
 ) -> _C.RunnerReturn:
-    if not (isinstance(local_work_size, list) and isinstance(local_work_size[0], int)):
+    if not (isinstance(local_work_size, (list,tuple)) and isinstance(local_work_size[0], int)):
         raise TypeError("local_work_size type must be List[int]")
     if not (
-        isinstance(global_work_size, list) and isinstance(global_work_size[0], int)
+        isinstance(global_work_size, (list,tuple)) and isinstance(global_work_size[0], int)
     ):
         raise TypeError("global_work_size type must be List[int]")
     if len(local_work_size) != len(global_work_size):

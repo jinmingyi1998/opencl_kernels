@@ -36,15 +36,20 @@ class Runner:
     ): ...
     def release_kernel(self, kernel_name: Union[str, List[str]]) -> int: ...
     def run(
-        self,
-        *,
-        kernel_name: str,
-        input: List[Dict[str, Union[int, float, np.array]]],
-        output: List[str],
-        local_work_size: List[int],
-        global_work_size: List[int],
-        wait: bool = True,
-        timer: Union[Dict, TimerArgs] = TimerArgsDisabled,
+            self,
+            *,
+            kernel_name: str,
+            input: List[
+                Dict[
+                    str,
+                    Union[int, float, np.array, List[Dict[str, Union[int, float, str]]]],
+                ]
+            ],
+            local_work_size: Union[List[int],Tuple[int]],
+            global_work_size: Union[List[int],Tuple[int]],
+            output: Optional[List[str]] = None,
+            wait: Optional[bool] = True,
+            timer: Optional[Union[Dict, TimerArgs]] = TimerArgsDisabled,
     ) -> RunnerReturn: ...
 
-def CtxRunner(filename, kernel_name, compile_option=""): ...
+def RunnerCtx(filename, kernel_name, compile_option=""): ...
