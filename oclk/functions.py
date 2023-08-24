@@ -63,7 +63,7 @@ def release_kernel(kernel_name: str) -> int:
 def run(
     *,
     kernel_name: str,
-    input: List[Dict[str, Union[int, float, List, np.array]]],
+    input: List[Dict[str, Union[str, int, float, List[Dict], np.array]]],
     local_work_size: List[int],
     global_work_size: List[int],
     output: Optional[List[str]] = None,
@@ -76,6 +76,35 @@ def run(
         isinstance(global_work_size, list) and isinstance(global_work_size[0], int)
     ):
         raise TypeError("global_work_size type must be List[int]")
+    if len(local_work_size) != len(global_work_size):
+        raise ValueError(
+            f"local_work_size, global_work_size must has the same length, got {len(local_work_size)} , {len(global_work_size)}"
+        )
+    if not isinstance(output, list):
+        raise TypeError(f"output must be a list, got {type(output)}")
+    for s in output:
+        if not isinstance(s, str):
+            raise TypeError(f"output must be list of str, got {s}:{type(s)}")
+    if not isinstance(input, list):
+        raise TypeError(f"input must be list, got {type(input)}")
+    for d in input:
+        if not isinstance(d["name"], str):
+            raise TypeError(f"name must be str, got {type(d['name'])}")
+        if not isinstance(d["value"], (int, float, list, np.ndarray)):
+            raise TypeError(f"value must be one of int, float, list, np.ndarray")
+        if "type" in d:
+            if d["type"] not in [
+                "float",
+                "int",
+                "unsigned int",
+                "double",
+                "long",
+                "unsigned long",
+            ]:
+                raise ValueError(
+                    f"'type' must be 'float','int','unsigned int','double','long','unsigned long', but got {d['type']}"
+                )
+
     if timer is None:
         timer_dict = {}
     else:

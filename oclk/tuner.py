@@ -40,7 +40,7 @@ class Tuner:
             name = type(self).__name__
         self.name = name
         self.metrics = []
-        self.timer = TimerArgs(True, 5, 50, name)
+        self.timer = TimerArgs(True, 5, 100, name)
         for key, value in kwargs.items():
             self.__setattr__(key, value)
 
@@ -149,6 +149,9 @@ class Tuner:
         assert 0 < dim_size <= 3
         dims = []
         for i in range(dim_size):
+            assert (
+                locals()[f"dim{i}"] is not None
+            ), f"dim_size is {dim_size}, but dim{i} is None"
             dims.append(locals()[f"dim{i}"])
         worksizes: List[List[int]] = [list(t) for t in itertools.product(*dims)]
         g = TuneArgGenerator("values", worksizes)

@@ -13,7 +13,7 @@ def input_maker(**kwargs) -> List[Dict[str, Union[int, float, np.array]]]:
 
         input_maker(a=a, b=b, length=(arr_length, "int"), out=out)
 
-    will got a list of dict
+    then got a list of dict
 
     .. code-block::
 

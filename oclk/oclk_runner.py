@@ -161,7 +161,12 @@ class Runner:
         self,
         *,
         kernel_name: str,
-        input: List[Dict[str, Union[int, float, np.array]]],
+        input: List[
+            Dict[
+                str,
+                Union[int, float, np.array, List[Dict[str, Union[int, float, str]]]],
+            ]
+        ],
         local_work_size: List[int],
         global_work_size: List[int],
         output: Optional[List[str]] = None,
@@ -175,23 +180,29 @@ class Runner:
         :type kernel_name: str
         :param input:
             Dictionary to set input args, in the same order as kernel function
-                * **args from np.array should be contiguous array**
-                * constant args:
-                    * python type: float -> c type: float
-                    * python type: int -> c type: long
-                    * or specify c type with field "type", support types:
-                        * [unsigned] int
-                        * [unsigned] long
-                        * float
-                        * double
-                * custom C struct arg: parse values as list, for example:
+            key "name": name of this input
+            key "value": value of this input
+                    * **np.array should be contiguous array**
+                    * constant args:
+                        * python type: float -> c type: float
+                        * python type: int -> c type: long
+                        * or specify c type with field "type", support types:
+                            * [unsigned] int
+                            * [unsigned] long
+                            * float
+                            * double
+                    * custom C struct arg: parse values as list, for example:
 
-                    .. code-block::
+                        .. code-block::
 
-                        [
-                            {"type": "float", "value": 1.234},
-                            {"type": "int", "value": 1234}
-                        ]
+                            [
+                                {"type": "float", "value": 1.234},
+                                {"type": "int", "value": 1234}
+                            ]
+
+            key "type": [Optional] c type string for "value"
+
+            You can use :code:`input_maker()` to create this
 
         :type input: List[Dict[str, Union[int, float, np.array]]]
         :param output:              List of names to specify which array will be get back from GPU buffer
@@ -211,7 +222,8 @@ class Runner:
         :return: time info and output arrays
         :rtype: TimerResult
         """
-        assert kernel_name in self.kernel_list
+        if kernel_name not in self.kernel_list:
+            raise ValueError(f"Unknown kernel {kernel_name}")
 
         timer_dict: Dict = timer.__dict__() if isinstance(timer, TimerArgs) else timer
         return F.run(
