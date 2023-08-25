@@ -6,6 +6,7 @@ from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
+assert sys.version_info.minor > 6
 __version__ = "0.0.0"
 exec(open("oclk/version.py").read())
 
@@ -119,7 +120,7 @@ setup(
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     install_requires=install_requires,
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: GPU",
