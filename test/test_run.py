@@ -86,7 +86,7 @@ def test_set_struct():
     a = np.ascontiguousarray(np.zeros([4, 4, 4]), dtype)
     b = np.ascontiguousarray(np.arange(4 * 4 * 4).reshape([4, 4, 4]), dtype)
     kernel_name = "set_struct"
-    with RunnerCtx(kernel_file,kernel_name) as r:
+    with RunnerCtx(kernel_file, kernel_name) as r:
         r.run(
             kernel_name=kernel_name,
             input=input_maker(
@@ -95,7 +95,7 @@ def test_set_struct():
                     {"value": 4, "type": "int"},
                     {"value": 4, "type": "int"},
                     {"value": 4, "type": "int"},
-                    {"value": 0, "type": "int"}
+                    {"value": 0, "type": "int"},
                 ],
             ),
             output=["a"],
@@ -104,5 +104,6 @@ def test_set_struct():
         )
     assert np.linalg.norm(b - a).sum() < 1e-6
 
+
 def test_bench():
-    benchmark('test/bench_add.yaml')
+    benchmark("test/bench_add.yaml")

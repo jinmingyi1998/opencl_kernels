@@ -9,7 +9,7 @@ import numpy as np
 from tqdm import tqdm
 
 import oclk.functions as F
-from oclk.oclk_runner import RunnerCtx, Runner, RunnerReturn, TimerArgs
+from oclk.oclk_runner import Runner, RunnerCtx, RunnerReturn, TimerArgs
 
 
 class TuneArgGenerator:

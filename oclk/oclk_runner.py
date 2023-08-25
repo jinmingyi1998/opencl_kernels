@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from functools import wraps
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -149,7 +149,7 @@ class Runner:
         """
         assert (
             kernel_name in self.kernel_list
-        ), f"{kernel_name=}, not exists in loaded kernels"
+        ), f"kernel: {kernel_name}, not exists in loaded kernels"
         err = F.release_kernel(kernel_name)
         if err == 0:
             self.kernel_list.pop(kernel_name)
@@ -167,8 +167,8 @@ class Runner:
                 Union[int, float, np.array, List[Dict[str, Union[int, float, str]]]],
             ]
         ],
-        local_work_size: Union[List[int],Tuple[int]],
-        global_work_size: Union[List[int],Tuple[int]],
+        local_work_size: Union[List[int], Tuple[int]],
+        global_work_size: Union[List[int], Tuple[int]],
         output: Optional[List[str]] = None,
         wait: Optional[bool] = True,
         timer: Optional[Union[Dict, TimerArgs]] = TimerArgsDisabled,
