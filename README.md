@@ -113,6 +113,55 @@ print(out[:8])
 1. write a config like [bench_add.yaml](examples/bench_add.yaml)
 2. run `python -m oclk benchmark -f examples/bench_add.yaml`
 
+#### Example
+
+```shell
+python -m oclk benchmark -f examples/bench_add.yaml                          
+```
+output:
+```text
+[Timer bench_add.add] [CNT: 1] [AVG: 0.539ms] [STDEV 0.000ms] [TOTAL 0.539ms]
+[Timer bench_add.add_constant] [CNT: 1] [AVG: 0.576ms] [STDEV 0.000ms] [TOTAL 0.576ms]
+[Timer bench_add.add_batch] [CNT: 1] [AVG: 0.150ms] [STDEV 0.000ms] [TOTAL 0.150ms]
+```
+
+
+```shell
+python -m oclk benchmark -f examples/bench_add.yaml -s table
+```
+output:
+```text
+             benchmark results             
+┏━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+┃ timer name             ┃   avg time(ms) ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+│ bench_add.add          │ 0.538525390625 │
+│ bench_add.add_constant │ 0.581396484375 │
+│ bench_add.add_batch    │ 0.149169921875 │
+└────────────────────────┴────────────────┘
+```
+
+```shell
+python -m oclk benchmark -f examples/bench_add.yaml -s json -o bench_add.json
+```
+output to json file `bench_add.json`
+```json
+[
+  {
+    "name": "bench_add.add",
+    "time(ms)": 0.54248046875
+  },
+  {
+    "name": "bench_add.add_constant",
+    "time(ms)": 0.5767089843750001
+  },
+  {
+    "name": "bench_add.add_batch",
+    "time(ms)": 0.15048828125000002
+  }
+]
+```
+
 ### Kernel Tune
 
 1. given a OpenCL kernel file `add.cl`
@@ -120,3 +169,56 @@ print(out[:8])
 3. edit `tune_add.py`
 4. run `python -m oclk tune -f tune_add.py -o add_tune_result.json`
 5. results are stored in `add_tune_result.json`
+
+#### Example
+
+```shell
+python -m oclk tune -f examples/tune/tune_add.py -k 3
+```
+then output `output.json`
+```json
+[
+  {
+    "name": [
+      "examples.tune.tune_add",
+      "AddTuner"
+    ],
+    "k": 3,
+    "topk_results": [
+      {
+        "kwargs": {
+          "local_work_size": [
+            512
+          ],
+          "vector_size": 4,
+          "tile_size": 4,
+          "method": "naive"
+        },
+        "time_ms": 0.67691162109375
+      },
+      {
+        "kwargs": {
+          "local_work_size": [
+            128
+          ],
+          "vector_size": 4,
+          "tile_size": 4,
+          "method": "naive"
+        },
+        "time_ms": 0.6769140625
+      },
+      {
+        "kwargs": {
+          "local_work_size": [
+            64
+          ],
+          "vector_size": 4,
+          "tile_size": 4,
+          "method": "naive"
+        },
+        "time_ms": 0.677001953125
+      }
+    ]
+  }
+]
+```
