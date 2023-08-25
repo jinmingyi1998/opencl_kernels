@@ -49,7 +49,9 @@ def tune(
     filename: Annotated[
         Optional[Path], typer.Option("--filename", "-f", exists=True, dir_okay=False)
     ] = None,
-    k: Annotated[Optional[int], typer.Option(help='output top "k" results')] = 5,
+    k: Annotated[
+        Optional[int], typer.Option("--topk", "-k", help='output top "k" results')
+    ] = 5,
     output: Annotated[
         Optional[str], typer.Option("--output", "-o", help="output file")
     ] = "output.json",
@@ -62,7 +64,7 @@ def tune(
     p = Path()
     module_list = {}
     if filename:
-        module_path = filename.split(".", 1)[0]
+        module_path = str(filename).split(".", 1)[0]
         module_path = module_path.replace("/", ".")
         module_list[module_path] = importlib.import_module(module_path)
     else:

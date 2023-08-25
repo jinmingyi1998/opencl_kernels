@@ -25,7 +25,7 @@ class AddTuner(Tuner):
     @Tuner.values_arg("method", "naive", "vectorized", "tile")
     @Tuner.tune()
     def add(self, *, local_work_size, vector_size, tile_size, method):
-        # raise TuningSkip skip duplicate args
+        # raise TuningSkip to skip duplicate args
         if method == "naive" and (vector_size != 4 or tile_size != 4):
             raise TuningSkip()
         if method == "tile" and vector_size != 4:
