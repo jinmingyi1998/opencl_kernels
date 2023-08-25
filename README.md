@@ -1,9 +1,13 @@
 # OpenCL Kernel Python Wrapper
 
 [![github badge](https://img.shields.io/badge/view%20on%20github-gray?style=plastic&logo=github)](https://github.com/jinmingyi1998/opencl_kernels)
-[![pypi badge](https://img.shields.io/badge/pypi-pyoclk-blue?style=plastic&logo=pypi&labelColor=white)](https://pypi.org/project/pyoclk/)
 [![readthedocs](https://img.shields.io/badge/readthedocs-8CA1AF?logo=readthedocs&labelColor=white)](https://opencl-kernel-python-wrapper.readthedocs.io/en/latest/)
-![license](https://img.shields.io/badge/License-MIT-darkgreen)
+![GitHub release (with filter)](https://img.shields.io/github/v/release/jinmingyi1998/opencl_kernels)
+[![PyPI - Version](https://img.shields.io/pypi/v/pyoclk)](https://pypi.org/project/pyoclk/)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/pyoclk)
+![license](https://img.shields.io/pypi/l/pyoclk)
+![GitHub Repo stars](https://img.shields.io/github/stars/jinmingyi1998/opencl_kernels)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyoclk)](https://pypi.org/project/pyoclk/)
 
 ## Install
 
@@ -104,71 +108,15 @@ print(a[:8])
 print(out[:8])
 ```
 
-#### Call with Functions
-
-```python
-import numpy as np
-import oclk
-
-a = np.random.rand(100, 100).reshape([10, -1])
-a = np.ascontiguousarray(a,np.float32)
-
-out = np.zeros_like(a)
-out = np.ascontiguousarray(out,np.float32)
-oclk.init()
-oclk.load_kernel("add.cl", "add", "")
-r = oclk.run(
-    kernel_name="add",
-    input=[
-        {"name": "a", "value": a, },
-        {"name": "out", "value": out, },
-        {"name": "int_arg", "value": 1, },
-        {"name": "float_arg", "value": 12.34}
-    ],
-    output=['out'],
-    local_work_size=[1, 1],
-    global_work_size=a.shape
-)
-# check result
-a = a.reshape([-1])
-out = out.reshape([-1])
-print(a[:8])
-print(out[:8])
-```
 ### Kernel Benchmark
 
 1. write a config like [bench_add.yaml](examples/bench_add.yaml)
-2. run `python -m oclk.benchmark examples/bench_add.yaml`
+2. run `python -m oclk benchmark -f examples/bench_add.yaml`
 
-### Python api Usage
+### Kernel Tune
 
-#### API
-
-[API Reference](https://opencl-kernel-python-wrapper.readthedocs.io/en/latest/src/oclk.html#module-oclk.oclk_runner)
-
-#### example
-
-```python
-import numpy as np
-
-a = np.zeros([16, 16, 16], dtype=np.float32)
-b = np.zeros([16, 16, 16], dtype=np.float32)
-c = np.zeros([16, 16, 16], dtype=np.float32)
-
-a = np.ascontiguousarray(a,dtype=np.float32)
-b = np.ascontiguousarray(b,dtype=np.float32)
-c = np.ascontiguousarray(c,dtype=np.float32)
-
-run(kernel_name='add',
-    input=[
-        {"name": "a", "value": a, },
-        {"name": "b", "value": b, },
-        {"name": "int_arg", "value": 1, "type": "int"},
-        {"name": "float_arg", "value": 12.34},
-        {"name": "c", "value": c}
-    ],
-    output=['c'],
-    local_work_size=[1, 1, 1],
-    global_work_size=a.shape
-    )
-```
+1. given a OpenCL kernel file `add.cl`
+2. run `python -m oclk new tune add`, then generate a new file `tune_add.py`
+3. edit `tune_add.py`
+4. run `python -m oclk tune -f tune_add.py -o add_tune_result.json`
+5. results are stored in `add_tune_result.json`

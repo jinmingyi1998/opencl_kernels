@@ -50,7 +50,7 @@ def add_constant():
     timer = TimerArgs(True, 1, 10, "add_constant")
     rtn = r.run(
         kernel_name="add_constant",
-        input=Runner.input_maker(a=a, x=x, length=arr_length, out=out),
+        input=input_maker(a=a, x=x, length=arr_length, out=out),
         output=["out"],
         local_work_size=[1],
         global_work_size=[arr_length],
@@ -76,7 +76,7 @@ def add_batch():
     timer = TimerArgs(True, 10, 100, "add_batch")
     result = r.run(
         kernel_name="add_batch",
-        input=Runner.input_maker(a=a, b=b, length=arr_length, out=out),
+        input=input_maker(a=a, b=b, length=arr_length, out=out),
         output=["out"],
         local_work_size=[1],
         global_work_size=[arr_length // 4],

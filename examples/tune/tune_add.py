@@ -1,5 +1,5 @@
 import os
-from pprint import pp
+import pprint
 
 import numpy as np
 from oclk import input_maker
@@ -59,9 +59,7 @@ class AddTuner(Tuner):
 
         # [Optional] check whether the result is correct
         diff = np.abs(c - self.gt).max()
-        assert (
-            diff < 1e-6
-        ), f"diff not zero : {diff=} {method=} {local_work_size=} {vector_size=} {tile_size=}"
+        assert diff < 1e-6, f"diff not zero"
 
         # return the timer's time
         return rtn.timer_result.avg
@@ -79,4 +77,4 @@ if __name__ == "__main__":
     tuner.add()
 
     # print top K=5 arguments combinations
-    pp(tuner.top_result())
+    pprint.pprint(tuner.top_result())
